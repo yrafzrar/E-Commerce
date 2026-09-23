@@ -9,7 +9,6 @@ A GamesRun permite que usuários anunciem produtos e realizem compras pela próp
 Existem duas possibilidades para o vendedor:
 
 🏢 Vender o produto diretamente para a GamesRun;
-
 👤 Vender o produto para outro usuário.
 
 Nas vendas entre usuários, o produto passa por um centro de distribuição da GamesRun, onde pode ser verificado antes de ser enviado ao comprador.
@@ -17,7 +16,6 @@ Nas vendas entre usuários, o produto passa por um centro de distribuição da G
 O comprador pode escolher entre:
 
 🚚 Entrega em domicílio;
-
 📦 Retirada em ponto de coleta.
 
 🛡️ Sistema de segurança
@@ -37,237 +35,8 @@ Quando uma mensagem suspeita é identificada, o sistema pode:
 
 📋 Adicionar o usuário à lista de supervisão quando necessário.
 
-Exemplo
-Vendedor:
-"Me chama no WhatsApp para fecharmos por fora da plataforma."
-
-        ↓
-
-      IA analisa
-
-        ↓
-
-Mensagem identificada como suspeita
-
-        ↓
-
-🚫 Mensagem bloqueada
-⚠️ Usuário recebe orientação
-📋 Caso registrado para supervisão
-⚙️ Funcionalidades
-👤 Usuários
-Criar conta;
-
-Fazer login;
-
-Atualizar dados pessoais;
-
-Cadastrar endereços;
-
-Gerenciar conta.
-
-🛒 Produtos
-Criar anúncios;
-
-Editar anúncios;
-
-Remover anúncios;
-
-Pesquisar produtos;
-
-Visualizar detalhes;
-
-Adicionar imagens;
-
-Definir preço e quantidade;
-
-Informar condição do produto.
-
-🛍️ Carrinho
-Adicionar produtos;
-
-Alterar quantidade;
-
-Remover produtos;
-
-Visualizar carrinho.
-
-💳 Compras
-Realizar pedidos;
-
-Registrar pedidos;
-
-Realizar pagamento;
-
-Acompanhar status da compra.
-
-🚚 Entregas
-Escolher tipo de entrega;
-
-Entrega em domicílio;
-
-Retirada em ponto de coleta;
-
-Acompanhar entrega;
-
-Consultar código de rastreio.
-
-💬 Chat
-Comunicação entre comprador e vendedor;
-
-Análise das mensagens;
-
-Identificação de mensagens suspeitas;
-
-Bloqueio de mensagens de negociação externa;
-
-Registro de possíveis golpes.
-
-⭐ Avaliações
-Avaliar vendedores;
-
-Avaliar compradores;
-
-Registrar nota de 1 a 5;
-
-Adicionar comentários.
-
 🗄️ Banco de dados
-A GamesRun utiliza um banco de dados relacional.
-
-Principais tabelas:
-
-usuarios
-enderecos
-categorias
-anuncios
-imagens_anuncio
-carrinhos
-itens_carrinho
-pedidos
-itens_pedido
-pagamentos
-entregas
-chats
-mensagens
-supervisoes
-avaliacoes
-Principais relacionamentos
-USUARIO
-   │
-   ├── ENDEREÇOS
-   ├── ANÚNCIOS
-   ├── CARRINHO
-   ├── PEDIDOS
-   ├── CHATS
-   ├── SUPERVISÕES
-   └── AVALIAÇÕES
-
-ANÚNCIO
-   │
-   ├── IMAGENS
-   ├── CATEGORIA
-   ├── ITENS DO CARRINHO
-   └── CHATS
-
-PEDIDO
-   │
-   ├── ITENS
-   ├── PAGAMENTO
-   └── ENTREGA
-
-CHAT
-   │
-   └── MENSAGENS
-          │
-          └── SUPERVISÕES
-🏗️ Arquitetura
-O projeto utiliza uma arquitetura organizada em camadas:
-
-src/
-│
-├── controllers/
-│   ├── AuthController
-│   ├── UsuarioController
-│   ├── EnderecoController
-│   ├── AnuncioController
-│   ├── CategoriaController
-│   ├── CarrinhoController
-│   ├── PedidoController
-│   ├── PagamentoController
-│   ├── EntregaController
-│   ├── ChatController
-│   ├── MensagemController
-│   ├── AvaliacaoController
-│   └── SupervisaoController
-│
-├── services/
-│   ├── AuthService
-│   ├── AnuncioService
-│   ├── PedidoService
-│   ├── PagamentoService
-│   ├── EntregaService
-│   ├── ChatService
-│   ├── MensagemService
-│   └── IAService
-│
-├── models/
-│   ├── Usuario
-│   ├── Endereco
-│   ├── Categoria
-│   ├── Anuncio
-│   ├── Carrinho
-│   ├── Pedido
-│   ├── Pagamento
-│   ├── Entrega
-│   ├── Chat
-│   ├── Mensagem
-│   ├── Avaliacao
-│   └── Supervisao
-│
-└── repositories/
-    └── acesso aos dados
-🤖 Fluxo da IA
-A análise de mensagens não fica diretamente dentro do controller.
-
-MensagemController
-        ↓
-MensagemService
-        ↓
-    IAService
-        ↓
-Análise da mensagem
-        ↓
- ┌──────┴──────┐
- ↓             ↓
-Normal       Suspeita
- ↓             ↓
-Envia       Bloqueia/
-mensagem    alerta
-                ↓
-          Supervisão
-Essa separação facilita a manutenção, evolução e organização do sistema.
-
-🔐 Segurança
-A plataforma possui requisitos voltados à proteção dos usuários e dos dados.
-
-Entre eles:
-
-Senhas armazenadas de forma protegida;
-
-Dados pessoais protegidos;
-
-CPF, e-mail e nickname únicos;
-
-Controle de usuários bloqueados ou suspensos;
-
-Proteção contra negociações fora da plataforma;
-
-Análise de mensagens suspeitas;
-
-Registro de casos para supervisão;
-
-Confidencialidade das comunicações.
+A GamesRun utiliza um banco de dados relacional com MySQL.
 
 📋 Requisitos funcionais
 Código	Requisito
@@ -319,78 +88,6 @@ RNF13: Análise de mensagens sem comprometer a privacidade;
 
 RNF14: Integração com serviços de entrega de terceiros.
 
-🌐 Principais páginas
-A plataforma será composta inicialmente por:
-
-Home
- ├── Produtos
- ├── Categorias
- └── Pesquisa
-
-Produto
- ├── Informações
- ├── Imagens
- ├── Preço
- └── Comprar
-
-Carrinho
- ├── Produtos
- ├── Quantidades
- └── Total
-
-Compra
- ├── Endereço
- ├── Forma de entrega
- ├── Pagamento
- └── Confirmação
-
-Sign Up
- └── Cadastro
-
-Sign In
- └── Login
-
-Chat
- ├── Mensagens
- └── Sistema de segurança
-🔄 Fluxo de uma compra
-Usuário pesquisa produto
-          ↓
-Visualiza anúncio
-          ↓
-Adiciona ao carrinho
-          ↓
-Realiza a compra
-          ↓
-Escolhe entrega
-          ↓
-Realiza pagamento
-          ↓
-Pedido registrado
-          ↓
-Produto enviado
-          ↓
-Acompanhamento da entrega
-          ↓
-Produto recebido
-          ↓
-Avaliação
-🚚 Fluxo de venda entre usuários
-Vendedor cria anúncio
-          ↓
-Comprador realiza compra
-          ↓
-Vendedor envia produto
-          ↓
-Centro de distribuição GamesRun
-          ↓
-Verificação do produto
-          ↓
-Produto enviado ao comprador
-          ↓
-Comprador recebe
-          ↓
-Avaliação
 🎯 Objetivo
 O objetivo da GamesRun é desenvolver uma plataforma de compra e venda de produtos gamers que combine:
 
@@ -417,14 +114,5 @@ Inteligência Artificial;
 
 Experiência do usuário.
 
-📁 Organização do projeto
-GamesRun/
-│
-├── src/
-├── database/
-├── docs/
-├── tests/
-├── README.md
-└── ...
 📜 Licença
 Projeto desenvolvido para fins acadêmicos e educacionais.
