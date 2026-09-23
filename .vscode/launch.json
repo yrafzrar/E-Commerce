@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-GamesRun<GamesRun>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "eCommerce.GamesRun.GamesRun",
+            "projectName": "GamesRun",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
