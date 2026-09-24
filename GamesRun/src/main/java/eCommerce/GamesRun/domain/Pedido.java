@@ -30,4 +30,20 @@ public class Pedido {
     public double getValorTotal() {
         return valorTotal;
     }
+
+    public void setCompradorId(Long compradorId) {
+        this.compradorId = compradorId;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setDataCriacao(String dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public void setValorTotal(double valorTotal) {
+        this.valorTotal = valorTotal;
+    }
 }

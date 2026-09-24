@@ -6,37 +6,31 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class Anuncio {
+public class Categoria {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String produto, descricao;
-    private double preco;
-
+    private String nome;
+    private String descricao;
 
     public Long getId() {
         return id;
     }
-    public String getProduto() {
-        return produto;
+
+    public String getNome() {
+        return nome;
     }
+
     public String getDescricao() {
         return descricao;
     }
-    public double getPreco() {
-        return preco;
-    }
 
-    public void setProduto(String produto) {
-        this.produto = produto;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
-    }
-
-    public void setPreco(double preco) {
-        this.preco = preco;
     }
 }
