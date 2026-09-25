@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GamesRun API Tester</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-soft: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --primary: #22c55e;
+      --primary-dark: #16a34a;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #020817, #111827 40%, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 1.15rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    select, input, textarea, button {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      background: var(--panel-soft);
+      color: var(--text);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      resize: vertical;
+      margin-top: 10px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #04130b;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    .danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .response {
+      margin-top: 16px;
+      background: #020817;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 180px;
+      white-space: pre-wrap;
+      overflow: auto;
+      color: #cbd5e1;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    @media (max-width: 840px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>GamesRun API Tester</h1>
+    <div class="subtitle">Teste de endpoints REST usando H2 em arquivo.</div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Requisição</h2>
+
+        <div class="controls">
+          <select id="resource">
+            <option value="usuarios">Usuarios</option>
+            <option value="produtos">Produtos</option>
+            <option value="categorias">Categorias</option>
+            <option value="pedidos">Pedidos</option>
+            <option value="anuncios">Anuncios</option>
+            <option value="avaliacoes-vendedores">Avaliações</option>
+            <option value="carrinhos">Carrinhos</option>
+          </select>
+
+          <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+
+          <input id="id" type="number" placeholder="ID (opcional)" style="width: 140px;" />
+        </div>
+
+        <div class="row">
+          <input id="url" type="text" value="/api/usuarios" style="flex:1;" />
+        </div>
+
+        <textarea id="body" placeholder='{"nome":"Teste","nick":"teste","senha":"123","idade":20,"cpf":123456789}'></textarea>
+
+        <div class="row" style="margin-top: 16px;">
+          <button id="sendBtn">Executar</button>
+          <button id="loadExampleBtn" class="danger">Carregar exemplo</button>
+        </div>
+
+        <div class="small">Base URL local: http://localhost:8080</div>
+      </div>
+
+      <div class="panel">
+        <h2>Resposta</h2>
+        <div id="response" class="response">Aguardando requisição...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const resourceSelect = document.getElementById('resource');
+    const methodSelect = document.getElementById('method');
+    const idInput = document.getElementById('id');
+    const urlInput = document.getElementById('url');
+    const bodyInput = document.getElementById('body');
+    const responseDiv = document.getElementById('response');
+
+    const resourceMap = {
+      usuarios: '/api/usuarios',
+      produtos: '/api/produtos',
+      categorias: '/api/categorias',
+      pedidos: '/api/pedidos',
+      anuncios: '/api/anuncios',
+      'avaliacoes-vendedores': '/api/avaliacoes-vendedores',
+      carrinhos: '/api/carrinhos'
+    };
+
+    function updateUrl() {
+      const resource = resourceSelect.value;
+      const base = resourceMap[resource] || '/api/usuarios';
+      const id = idInput.value ? `/${idInput.value}` : '';
+      urlInput.value = base + id;
+    }
+
+    resourceSelect.addEventListener('change', updateUrl);
+    idInput.addEventListener('input', updateUrl);
+
+    methodSelect.addEventListener('change', () => {
+      if (methodSelect.value !== 'POST' && methodSelect.value !== 'PUT') {
+        bodyInput.value = '';
+      }
+    });
+
+    document.getElementById('loadExampleBtn').addEventListener('click', () => {
+      const resource = resourceSelect.value;
+      if (resource === 'usuarios') {
+        bodyInput.value = JSON.stringify({
+          nome: 'Joao',
+          nick: 'joao123',
+          senha: '123456',
+          idade: 25,
+          cpf: 123456789
+        }, null, 2);
+      } else if (resource === 'produtos') {
+        bodyInput.value = JSON.stringify({
+          nome: 'Controle',
+          descricao: 'Controle sem fio',
+          preco: 299.90,
+          estoque: 10
+        }, null, 2);
+      } else {
+        bodyInput.value = JSON.stringify({
+          nome: 'Exemplo'
+        }, null, 2);
+      }
+    });
+
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      const method = methodSelect.value;
+      const endpoint = urlInput.value;
+      const body = bodyInput.value.trim();
+
+      let options = {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      if (method === 'POST' || method === 'PUT') {
+        if (!body) {
+          responseDiv.textContent = 'Preencha o JSON do corpo da requisição.';
+          return;
+        }
+        options.body = body;
+      }
+
+      try {
+        responseDiv.textContent = 'Enviando...';
+        const response = await fetch(`http://localhost:8080${endpoint}`, options);
+        const contentType = response.headers.get('content-type') || '';
+        const text = await response.text();
+
+        const result = contentType.includes('application/json')
+          ? JSON.stringify(JSON.parse(text), null, 2)
+          : text || '(sem conteúdo)';
+
+        responseDiv.textContent = `Status: ${response.status}\n\n${result}`;
+      } catch (error) {
+        responseDiv.textContent = `Erro ao chamar a API:\n${error.message}\n\nVerifique se o projeto está rodando em http://localhost:8080`;
+      }
+    });
+
+    updateUrl();
+  </script>
+</body>
+</html>
