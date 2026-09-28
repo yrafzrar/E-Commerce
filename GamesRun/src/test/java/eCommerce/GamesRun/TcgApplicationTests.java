@@ -76,24 +76,24 @@ class GamesRunApplicationTests {
 
 	@Test
 	void cadastrosNulosRetornamErroComMensagemEspecifica() throws Exception {
-		verificarCadastroNulo("/api/anuncios", "Anuncio nao pode ser nulo");
-		verificarCadastroNulo("/api/avaliacoes", "Avaliacao nao pode ser nula");
-		verificarCadastroNulo("/api/carrinhos", "Carrinho nao pode ser nulo");
-		verificarCadastroNulo("/api/categorias", "Categoria nao pode ser nula");
-		verificarCadastroNulo("/api/pedidos", "Pedido nao pode ser nulo");
+		verificarCadastroNulo("/api/anuncios/cadastrar", "Anuncio nao pode ser nulo");
+		verificarCadastroNulo("/api/avaliacoes/cadastrar", "Avaliacao nao pode ser nula");
+		verificarCadastroNulo("/api/carrinhos/cadastrar", "Carrinho nao pode ser nulo");
+		verificarCadastroNulo("/api/categorias/cadastrar", "Categoria nao pode ser nula");
+		verificarCadastroNulo("/api/pedidos/cadastrar", "Pedido nao pode ser nulo");
 		verificarCadastroNulo("/api/produtos/cadastrar", "Produto nao pode ser nulo");
-		verificarCadastroNulo("/api/usuarios", "Usuario nao pode ser nulo");
+		verificarCadastroNulo("/api/usuarios/cadastrar", "Usuario nao pode ser nulo");
 	}
 
 	@Test
 	void buscasInexistentesRetornam404ComMensagemDoRecurso() throws Exception {
-		verificarNaoEncontrado("/api/anuncios/99999999", "Anuncio nao encontrado");
-		verificarNaoEncontrado("/api/avaliacoes/99999999", "Avaliacao nao encontrada");
-		verificarNaoEncontrado("/api/carrinhos/99999999", "Carrinho nao encontrado");
-		verificarNaoEncontrado("/api/categorias/99999999", "Categoria nao encontrada");
-		verificarNaoEncontrado("/api/pedidos/99999999", "Pedido nao encontrado");
+		verificarNaoEncontrado("/api/anuncios/listar/99999999", "Anuncio nao encontrado");
+		verificarNaoEncontrado("/api/avaliacoes/listar/99999999", "Avaliacao nao encontrada");
+		verificarNaoEncontrado("/api/carrinhos/listar/99999999", "Carrinho nao encontrado");
+		verificarNaoEncontrado("/api/categorias/listar/99999999", "Categoria nao encontrada");
+		verificarNaoEncontrado("/api/pedidos/listar/99999999", "Pedido nao encontrado");
 		verificarNaoEncontrado("/api/produtos/listar/99999999", "Produto nao encontrado");
-		verificarNaoEncontrado("/api/usuarios/99999999", "Usuario nao encontrado");
+		verificarNaoEncontrado("/api/usuarios/listar/99999999", "Usuario nao encontrado");
 	}
 
 	private void verificarCadastroNulo(String rota, String mensagem) throws Exception {

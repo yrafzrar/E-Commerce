@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import eCommerce.GamesRun.domain.Usuario;
-import eCommerce.GamesRun.exception.ApiException;
 import eCommerce.GamesRun.service.UsuarioService;
 
 @RestController
@@ -24,45 +25,29 @@ public class UsuarioController {
 		this.usuarioService = usuarioService;
 	}
 
-	@GetMapping
-	public ResponseEntity<Object> listarTodos() {
+	@GetMapping("/listar")
+	public ResponseEntity<List<Usuario>> listarTodos() {
 		return ResponseEntity.ok(usuarioService.listarTodos());
 	}
 
-	@GetMapping("/{id}")
-	public ResponseEntity<Object> buscarPorId(@PathVariable Long id) {
-		try {
-			return ResponseEntity.ok(usuarioService.buscarPorId(id));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@GetMapping("/listar/{id}")
+	public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
+		return ResponseEntity.ok(usuarioService.buscarPorId(id));
 	}
 
-	@PostMapping
-	public ResponseEntity<Object> criar(@RequestBody(required = false) Usuario usuario) {
-		try {
-			return ResponseEntity.ok(usuarioService.salvar(usuario));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@PostMapping("/cadastrar")
+	public ResponseEntity<Usuario> criar(@RequestBody(required = false) Usuario usuario) {
+		return ResponseEntity.ok(usuarioService.salvar(usuario));
 	}
 
-	@PutMapping("/{id}")
-	public ResponseEntity<Object> atualizar(@PathVariable Long id, @RequestBody(required = false) Usuario usuario) {
-		try {
-			return ResponseEntity.ok(usuarioService.atualizar(id, usuario));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@PutMapping("/atualizar/{id}")
+	public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody(required = false) Usuario usuario) {
+		return ResponseEntity.ok(usuarioService.atualizar(id, usuario));
 	}
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<Object> excluir(@PathVariable Long id) {
-		try {
-			usuarioService.excluir(id);
-			return ResponseEntity.ok(null);
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@DeleteMapping("/excluir/{id}")
+	public ResponseEntity<Void> excluir(@PathVariable Long id) {
+		usuarioService.excluir(id);
+		return ResponseEntity.ok().build();
 	}
 }

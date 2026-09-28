@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import eCommerce.GamesRun.domain.Categoria;
-import eCommerce.GamesRun.exception.ApiException;
 import eCommerce.GamesRun.service.CategoriaService;
 
 @RestController
@@ -24,45 +25,29 @@ public class CategoriaController {
 		this.categoriaService = categoriaService;
 	}
 
-	@GetMapping
-	public ResponseEntity<Object> listarTodos() {
+	@GetMapping("/listar")
+	public ResponseEntity<List<Categoria>> listarTodos() {
 		return ResponseEntity.ok(categoriaService.listarTodos());
 	}
 
-	@GetMapping("/{id}")
-	public ResponseEntity<Object> buscarPorId(@PathVariable Long id) {
-		try {
-			return ResponseEntity.ok(categoriaService.buscarPorId(id));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@GetMapping("/listar/{id}")
+	public ResponseEntity<Categoria> buscarPorId(@PathVariable Long id) {
+		return ResponseEntity.ok(categoriaService.buscarPorId(id));
 	}
 
-	@PostMapping
-	public ResponseEntity<Object> criar(@RequestBody(required = false) Categoria categoria) {
-		try {
-			return ResponseEntity.ok(categoriaService.salvar(categoria));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@PostMapping("/cadastrar")
+	public ResponseEntity<Categoria> criar(@RequestBody(required = false) Categoria categoria) {
+		return ResponseEntity.ok(categoriaService.salvar(categoria));
 	}
 
-	@PutMapping("/{id}")
-	public ResponseEntity<Object> atualizar(@PathVariable Long id, @RequestBody(required = false) Categoria categoria) {
-		try {
-			return ResponseEntity.ok(categoriaService.atualizar(id, categoria));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@PutMapping("/atualizar/{id}")
+	public ResponseEntity<Categoria> atualizar(@PathVariable Long id, @RequestBody(required = false) Categoria categoria) {
+		return ResponseEntity.ok(categoriaService.atualizar(id, categoria));
 	}
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<Object> excluir(@PathVariable Long id) {
-		try {
-			categoriaService.excluir(id);
-			return ResponseEntity.ok(null);
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	@DeleteMapping("/excluir/{id}")
+	public ResponseEntity<Void> excluir(@PathVariable Long id) {
+		categoriaService.excluir(id);
+		return ResponseEntity.ok().build();
 	}
 }

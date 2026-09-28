@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import eCommerce.GamesRun.domain.Produto;
-import eCommerce.GamesRun.exception.ApiException;
 import eCommerce.GamesRun.service.ProdutoService;
 
 @RestController
@@ -25,44 +26,28 @@ public class ProdutoController {
 	}
 
 	@GetMapping("/listar")
-	public ResponseEntity<Object> listarTodos() {
+	public ResponseEntity<List<Produto>> listarTodos() {
 		return ResponseEntity.ok(produtoService.listarTodos());
 	}
 
 	@GetMapping("/listar/{id}")
-	public ResponseEntity<Object> buscarPorId(@PathVariable Long id) {
-		try {
-			return ResponseEntity.ok(produtoService.buscarPorId(id));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	public ResponseEntity<Produto> buscarPorId(@PathVariable Long id) {
+		return ResponseEntity.ok(produtoService.buscarPorId(id));
 	}
 
 	@PostMapping("/cadastrar")
-	public ResponseEntity<Object> criar(@RequestBody(required = false) Produto produto) {
-		try {
-			return ResponseEntity.ok(produtoService.salvar(produto));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	public ResponseEntity<Produto> criar(@RequestBody(required = false) Produto produto) {
+		return ResponseEntity.ok(produtoService.salvar(produto));
 	}
 
 	@PutMapping("/atualizar/{id}")
-	public ResponseEntity<Object> atualizar(@PathVariable Long id, @RequestBody(required = false) Produto produto) {
-		try {
-			return ResponseEntity.ok(produtoService.atualizar(id, produto));
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	public ResponseEntity<Produto> atualizar(@PathVariable Long id, @RequestBody(required = false) Produto produto) {
+		return ResponseEntity.ok(produtoService.atualizar(id, produto));
 	}
 
 	@DeleteMapping("/excluir/{id}")
-	public ResponseEntity<Object> excluir(@PathVariable Long id) {
-		try {
-			produtoService.excluir(id);
-			return ResponseEntity.ok(null);
-		} catch (ApiException exception) {
-			return exception.toResponseEntity();
-		}
+	public ResponseEntity<Void> excluir(@PathVariable Long id) {
+		produtoService.excluir(id);
+		return ResponseEntity.ok().build();
 	}
 }

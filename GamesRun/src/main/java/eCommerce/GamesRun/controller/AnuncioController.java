@@ -11,8 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import eCommerce.GamesRun.domain.Anuncio;
-import eCommerce.GamesRun.exception.ApiException;
 import eCommerce.GamesRun.service.AnuncioService;
 
 @RestController
@@ -25,50 +26,34 @@ public class AnuncioController {
         this.anuncioService = anuncioService;
     }
 
-    @GetMapping
-    public ResponseEntity<Object> listarTodos() {
+    @GetMapping("/listar")
+    public ResponseEntity<List<Anuncio>> listarTodos() {
         return ResponseEntity.ok(anuncioService.buscarTodos());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Object> buscarPorId(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(anuncioService.buscarPorId(id));
-        } catch (ApiException exception) {
-            return exception.toResponseEntity();
-        }
+    @GetMapping("/listar/{id}")
+    public ResponseEntity<Anuncio> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(anuncioService.buscarPorId(id));
     }
 
-    @GetMapping("/busca")
-    public ResponseEntity<Object> buscarPorNome(@RequestParam String produto) {
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Anuncio>> buscarPorNome(@RequestParam String produto) {
         return ResponseEntity.ok(anuncioService.buscarPorNome(produto));
     }
 
-    @PostMapping
-    public ResponseEntity<Object> criar(@RequestBody(required = false) Anuncio anuncio) {
-        try {
-            return ResponseEntity.ok(anuncioService.salvar(anuncio));
-        } catch (ApiException exception) {
-            return exception.toResponseEntity();
-        }
+    @PostMapping("/cadastrar")
+    public ResponseEntity<Anuncio> criar(@RequestBody(required = false) Anuncio anuncio) {
+        return ResponseEntity.ok(anuncioService.salvar(anuncio));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> atualizar(@PathVariable Long id, @RequestBody(required = false) Anuncio anuncio) {
-        try {
-            return ResponseEntity.ok(anuncioService.atualizar(id, anuncio));
-        } catch (ApiException exception) {
-            return exception.toResponseEntity();
-        }
+    @PutMapping("/atualizar/{id}")
+    public ResponseEntity<Anuncio> atualizar(@PathVariable Long id, @RequestBody(required = false) Anuncio anuncio) {
+        return ResponseEntity.ok(anuncioService.atualizar(id, anuncio));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> excluir(@PathVariable Long id) {
-        try {
-            anuncioService.excluir(id);
-            return ResponseEntity.ok(null);
-        } catch (ApiException exception) {
-            return exception.toResponseEntity();
-        }
+    @DeleteMapping("/excluir/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        anuncioService.excluir(id);
+        return ResponseEntity.ok().build();
     }
 }

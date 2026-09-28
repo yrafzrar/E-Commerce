@@ -1,8 +1,6 @@
 package eCommerce.GamesRun.exception;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 public class ApiException extends RuntimeException {
 
 	private final HttpStatus status;
@@ -16,8 +14,4 @@ public class ApiException extends RuntimeException {
 		return status;
 	}
 
-	public ResponseEntity<Object> toResponseEntity() {
-		return ResponseEntity.status(status)
-				.body(new ApiError(status.value(), getMessage()));
-	}
 }
