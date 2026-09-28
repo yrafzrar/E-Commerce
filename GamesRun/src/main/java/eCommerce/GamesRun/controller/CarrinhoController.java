@@ -1,7 +1,6 @@
 package eCommerce.GamesRun.controller;
 
-import eCommerce.GamesRun.domain.Carrinho;
-import eCommerce.GamesRun.service.CarrinhoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import eCommerce.GamesRun.domain.Carrinho;
+import eCommerce.GamesRun.exception.ApiException;
+import eCommerce.GamesRun.service.CarrinhoService;
 
 @RestController
 @RequestMapping("/api/carrinhos")
@@ -24,27 +25,44 @@ public class CarrinhoController {
 	}
 
 	@GetMapping
-	public List<Carrinho> listarTodos() {
-		return carrinhoService.listarTodos();
+	public ResponseEntity<Object> listarTodos() {
+		return ResponseEntity.ok(carrinhoService.listarTodos());
 	}
 
 	@GetMapping("/{id}")
-	public Carrinho buscarPorId(@PathVariable Long id) {
-		return carrinhoService.buscarPorId(id);
+	public ResponseEntity<Object> buscarPorId(@PathVariable Long id) {
+		try {
+			return ResponseEntity.ok(carrinhoService.buscarPorId(id));
+		} catch (ApiException exception) {
+			return exception.toResponseEntity();
+		}
 	}
 
 	@PostMapping
-	public Carrinho criar(@RequestBody Carrinho carrinho) {
-		return carrinhoService.salvar(carrinho);
+	public ResponseEntity<Object> criar(@RequestBody(required = false) Carrinho carrinho) {
+		try {
+			return ResponseEntity.ok(carrinhoService.salvar(carrinho));
+		} catch (ApiException exception) {
+			return exception.toResponseEntity();
+		}
 	}
 
 	@PutMapping("/{id}")
-	public Carrinho atualizar(@PathVariable Long id, @RequestBody Carrinho carrinho) {
-		return carrinhoService.atualizar(id, carrinho);
+	public ResponseEntity<Object> atualizar(@PathVariable Long id, @RequestBody(required = false) Carrinho carrinho) {
+		try {
+			return ResponseEntity.ok(carrinhoService.atualizar(id, carrinho));
+		} catch (ApiException exception) {
+			return exception.toResponseEntity();
+		}
 	}
 
 	@DeleteMapping("/{id}")
-	public void excluir(@PathVariable Long id) {
-		carrinhoService.excluir(id);
+	public ResponseEntity<Object> excluir(@PathVariable Long id) {
+		try {
+			carrinhoService.excluir(id);
+			return ResponseEntity.ok(null);
+		} catch (ApiException exception) {
+			return exception.toResponseEntity();
+		}
 	}
 }

@@ -1,12 +1,13 @@
 package eCommerce.GamesRun.service;
 
-import eCommerce.GamesRun.domain.AvaliacaoVendedor;
-import eCommerce.GamesRun.repository.AvaliacaoVendedorRepository;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import eCommerce.GamesRun.domain.AvaliacaoVendedor;
+import eCommerce.GamesRun.exception.ApiException;
+import eCommerce.GamesRun.repository.AvaliacaoVendedorRepository;
 
 @Service
 public class AvaliacaoVendedorService {
@@ -23,14 +24,16 @@ public class AvaliacaoVendedorService {
 
     public AvaliacaoVendedor buscarPorId(Long id) {
         return avaliacaoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
     }
 
     public AvaliacaoVendedor salvar(AvaliacaoVendedor avaliacao) {
+        validar(avaliacao);
         return avaliacaoRepository.save(avaliacao);
     }
 
     public AvaliacaoVendedor atualizar(Long id, AvaliacaoVendedor avaliacao) {
+        validar(avaliacao);
         AvaliacaoVendedor existente = buscarPorId(id);
         existente.setAvaliadorId(avaliacao.getAvaliadorId());
         existente.setVendedorId(avaliacao.getVendedorId());
@@ -41,5 +44,20 @@ public class AvaliacaoVendedorService {
 
     public void excluir(Long id) {
         avaliacaoRepository.delete(buscarPorId(id));
+    }
+
+    private void validar(AvaliacaoVendedor avaliacao) {
+        if (avaliacao == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Avaliacao nao pode ser nula");
+        }
+        if (avaliacao.getAvaliadorId() == null || avaliacao.getAvaliadorId() <= 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ID do avaliador deve ser maior que zero");
+        }
+        if (avaliacao.getVendedorId() == null || avaliacao.getVendedorId() <= 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "ID do vendedor deve ser maior que zero");
+        }
+        if (avaliacao.getNota() < 1 || avaliacao.getNota() > 5) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Nota deve estar entre 1 e 5");
+        }
     }
 }

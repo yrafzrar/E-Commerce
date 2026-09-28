@@ -1,10 +1,10 @@
 package eCommerce.GamesRun.service;
 
 import eCommerce.GamesRun.domain.Carrinho;
+import eCommerce.GamesRun.exception.ApiException;
 import eCommerce.GamesRun.repository.CarrinhoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -23,14 +23,16 @@ public class CarrinhoService {
 
 	public Carrinho buscarPorId(Long id) {
 		return carrinhoRepository.findById(id)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Carrinho nao encontrado"));
+				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Carrinho nao encontrado"));
 	}
 
 	public Carrinho salvar(Carrinho carrinho) {
+		validar(carrinho);
 		return carrinhoRepository.save(carrinho);
 	}
 
 	public Carrinho atualizar(Long id, Carrinho carrinho) {
+		validar(carrinho);
 		Carrinho existente = buscarPorId(id);
 		existente.setUsuarioId(carrinho.getUsuarioId());
 		existente.setAnuncioId(carrinho.getAnuncioId());
@@ -40,5 +42,20 @@ public class CarrinhoService {
 
 	public void excluir(Long id) {
 		carrinhoRepository.delete(buscarPorId(id));
+	}
+
+	private void validar(Carrinho carrinho) {
+		if (carrinho == null) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "Carrinho nao pode ser nulo");
+		}
+		if (carrinho.getUsuarioId() == null || carrinho.getUsuarioId() <= 0) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "ID do usuario deve ser maior que zero");
+		}
+		if (carrinho.getAnuncioId() == null || carrinho.getAnuncioId() <= 0) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "ID do anuncio deve ser maior que zero");
+		}
+		if (carrinho.getQuantidade() < 1) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "Quantidade deve ser maior que zero");
+		}
 	}
 }
