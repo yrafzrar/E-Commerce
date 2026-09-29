@@ -40,6 +40,11 @@ public class UsuarioController {
 		return ResponseEntity.ok(usuarioService.salvar(usuario));
 	}
 
+	@PostMapping("/login")
+	public ResponseEntity<Usuario> login(@RequestBody LoginRequest request) {
+		return ResponseEntity.ok(usuarioService.autenticar(request.nick(), request.senha()));
+	}
+
 	@PutMapping("/atualizar/{id}")
 	public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody(required = false) Usuario usuario) {
 		return ResponseEntity.ok(usuarioService.atualizar(id, usuario));
@@ -50,4 +55,6 @@ public class UsuarioController {
 		usuarioService.excluir(id);
 		return ResponseEntity.ok().build();
 	}
+
+	public record LoginRequest(String nick, String senha) {}
 }

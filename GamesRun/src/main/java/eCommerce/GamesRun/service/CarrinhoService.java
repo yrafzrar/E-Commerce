@@ -31,6 +31,37 @@ public class CarrinhoService {
 		return carrinhoRepository.save(carrinho);
 	}
 
+	public List<Carrinho> listarPorUsuario(Long usuarioId) {
+		return carrinhoRepository.findByUsuarioId(usuarioId);
+	}
+
+	public Carrinho adicionar(Long usuarioId, Long anuncioId, int quantidade) {
+		Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndAnuncioId(usuarioId, anuncioId).orElse(null);
+		boolean novo = carrinho == null;
+		if (novo) {
+			carrinho = new Carrinho();
+		}
+		carrinho.setUsuarioId(usuarioId);
+		carrinho.setAnuncioId(anuncioId);
+		carrinho.setQuantidade(novo ? quantidade : carrinho.getQuantidade() + quantidade);
+		validar(carrinho);
+		return carrinhoRepository.save(carrinho);
+	}
+
+	public Carrinho definirQuantidade(Long usuarioId, Long anuncioId, int quantidade) {
+		Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndAnuncioId(usuarioId, anuncioId)
+				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item nao encontrado no carrinho"));
+		carrinho.setQuantidade(quantidade);
+		validar(carrinho);
+		return carrinhoRepository.save(carrinho);
+	}
+
+	public void removerItem(Long usuarioId, Long anuncioId) {
+		Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndAnuncioId(usuarioId, anuncioId)
+				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Item nao encontrado no carrinho"));
+		carrinhoRepository.delete(carrinho);
+	}
+
 	public Carrinho atualizar(Long id, Carrinho carrinho) {
 		validar(carrinho);
 		Carrinho existente = buscarPorId(id);

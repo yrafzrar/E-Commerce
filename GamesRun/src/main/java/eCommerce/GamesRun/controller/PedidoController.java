@@ -30,6 +30,11 @@ public class PedidoController {
 		return ResponseEntity.ok(pedidoService.listarTodos());
 	}
 
+	@GetMapping("/comprador/{compradorId}")
+	public ResponseEntity<List<Pedido>> listarPorComprador(@PathVariable Long compradorId) {
+		return ResponseEntity.ok(pedidoService.listarPorComprador(compradorId));
+	}
+
 	@GetMapping("/listar/{id}")
 	public ResponseEntity<Pedido> buscarPorId(@PathVariable Long id) {
 		return ResponseEntity.ok(pedidoService.buscarPorId(id));

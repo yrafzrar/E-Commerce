@@ -32,6 +32,15 @@ public class UsuarioService {
 		return usuarioRepository.save(usuario);
 	}
 
+	public Usuario autenticar(String nick, String senha) {
+		Usuario usuario = usuarioRepository.findByNick(nick)
+				.orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Credenciais invalidas"));
+		if (!usuario.getSenha().equals(senha)) {
+			throw new ApiException(HttpStatus.UNAUTHORIZED, "Credenciais invalidas");
+		}
+		return usuario;
+	}
+
 	public Usuario atualizar(Long id, Usuario usuario) {
 		validar(usuario);
 		Usuario existente = buscarPorId(id);
@@ -60,8 +69,8 @@ public class UsuarioService {
 		if (usuario.getSenha() == null || usuario.getSenha().isBlank()) {
 			throw new ApiException(HttpStatus.BAD_REQUEST, "Senha do usuario e obrigatoria");
 		}
-		if (usuario.getIdade() <= 0 || usuario.getCpf() <= 0) {
-			throw new ApiException(HttpStatus.BAD_REQUEST, "Idade e CPF devem ser maiores que zero");
+		if (usuario.getCpf() == null || usuario.getCpf().isBlank()) {
+			throw new ApiException(HttpStatus.BAD_REQUEST, "CPF do usuario e obrigatorio");
 		}
 	}
 }

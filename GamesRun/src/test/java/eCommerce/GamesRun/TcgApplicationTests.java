@@ -17,10 +17,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import eCommerce.GamesRun.repository.ProdutoRepository;
+import eCommerce.GamesRun.repository.AnuncioRepository;
+import eCommerce.GamesRun.repository.CarrinhoRepository;
+import eCommerce.GamesRun.repository.PedidoRepository;
+import eCommerce.GamesRun.repository.UsuarioRepository;
 import tools.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
-@SpringBootTest
+@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:gamesrun-tests;DB_CLOSE_DELAY=-1")
 class GamesRunApplicationTests {
 
 	@Autowired
@@ -32,9 +36,25 @@ class GamesRunApplicationTests {
 	@Autowired
 	private ProdutoRepository produtoRepository;
 
+	@Autowired
+	private AnuncioRepository anuncioRepository;
+
+	@Autowired
+	private CarrinhoRepository carrinhoRepository;
+
+	@Autowired
+	private PedidoRepository pedidoRepository;
+
+	@Autowired
+	private UsuarioRepository usuarioRepository;
+
 	@BeforeEach
 	void limparProdutos() {
 		produtoRepository.deleteAll();
+		pedidoRepository.deleteAll();
+		carrinhoRepository.deleteAll();
+		anuncioRepository.deleteAll();
+		usuarioRepository.deleteAll();
 	}
 
 	@Test
@@ -83,6 +103,66 @@ class GamesRunApplicationTests {
 		verificarCadastroNulo("/api/pedidos/cadastrar", "Pedido nao pode ser nulo");
 		verificarCadastroNulo("/api/produtos/cadastrar", "Produto nao pode ser nulo");
 		verificarCadastroNulo("/api/usuarios/cadastrar", "Usuario nao pode ser nulo");
+	}
+
+	@Test
+	void fluxoDeContaAnuncioCarrinhoEPedido() throws Exception {
+		MvcResult resultadoUsuario = mockMvc.perform(post("/api/usuarios/cadastrar")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"nome":"Jogador Teste","nick":"jogador@teste.com","senha":"senha123","cpf":"00123456789"}
+							"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.senha").doesNotExist())
+				.andReturn();
+		long usuarioId = objectMapper.readTree(resultadoUsuario.getResponse().getContentAsString()).get("id").asLong();
+
+		mockMvc.perform(post("/api/usuarios/login")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"nick":"jogador@teste.com","senha":"senha123"}
+							"""))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(usuarioId));
+
+		MvcResult resultadoAnuncio = mockMvc.perform(post("/api/anuncios/cadastrar")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"produto":"Controle retrô","descricao":"Em ótimo estado","preco":150.0,"categoriaId":1,"vendedorId":%d,"imagemUrl":"https://example.com/controle.jpg","estadoConservacao":"Usado"}
+							""".formatted(usuarioId)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.imagemUrl").value("https://example.com/controle.jpg"))
+				.andReturn();
+		long anuncioId = objectMapper.readTree(resultadoAnuncio.getResponse().getContentAsString()).get("id").asLong();
+
+		mockMvc.perform(get("/api/anuncios/buscar").param("produto", "controle"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].produto").value("Controle retrô"));
+
+		mockMvc.perform(post("/api/carrinhos/usuario/{usuarioId}/itens", usuarioId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"anuncioId":%d,"quantidade":1}
+							""".formatted(anuncioId)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.quantidade").value(1));
+
+		mockMvc.perform(put("/api/carrinhos/usuario/{usuarioId}/itens/{anuncioId}", usuarioId, anuncioId)
+					.param("quantidade", "2"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.quantidade").value(2));
+
+		mockMvc.perform(post("/api/pedidos/cadastrar")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content("""
+							{"compradorId":%d,"status":"AGUARDANDO_PAGAMENTO","dataCriacao":"2026-09-28T10:00:00Z","valorTotal":325.0,"formaPagamento":"pix","enderecoEntrega":"Rua Teste, 1","itensResumo":"[{\\"nome\\":\\"Controle retrô\\",\\"preco\\":150.0,\\"quantidade\\":2}]"}
+							""".formatted(usuarioId)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("AGUARDANDO_PAGAMENTO"));
+
+		mockMvc.perform(get("/api/pedidos/comprador/{compradorId}", usuarioId))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].itensResumo").exists());
 	}
 
 	@Test

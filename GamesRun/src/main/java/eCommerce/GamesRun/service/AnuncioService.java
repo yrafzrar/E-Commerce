@@ -42,6 +42,10 @@ public class AnuncioService {
 		existente.setProduto(anuncio.getProduto());
 		existente.setDescricao(anuncio.getDescricao());
 		existente.setPreco(anuncio.getPreco());
+		existente.setEstadoConservacao(anuncio.getEstadoConservacao());
+		existente.setImagemUrl(anuncio.getImagemUrl());
+		existente.setCategoriaId(anuncio.getCategoriaId());
+		existente.setVendedorId(anuncio.getVendedorId());
 		return anuncioRepository.save(existente);
 	}
 

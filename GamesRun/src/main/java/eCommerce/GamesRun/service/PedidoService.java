@@ -22,6 +22,10 @@ public class PedidoService {
 		return pedidoRepository.findAll();
 	}
 
+	public List<Pedido> listarPorComprador(Long compradorId) {
+		return pedidoRepository.findByCompradorIdOrderByIdDesc(compradorId);
+	}
+
 	public Pedido buscarPorId(Long id) {
 		return pedidoRepository.findById(id)
 				.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Pedido nao encontrado"));
@@ -39,6 +43,9 @@ public class PedidoService {
 		existente.setStatus(pedido.getStatus());
 		existente.setDataCriacao(pedido.getDataCriacao());
 		existente.setValorTotal(pedido.getValorTotal());
+		existente.setFormaPagamento(pedido.getFormaPagamento());
+		existente.setEnderecoEntrega(pedido.getEnderecoEntrega());
+		existente.setItensResumo(pedido.getItensResumo());
 		return pedidoRepository.save(existente);
 	}
 

@@ -36,7 +36,10 @@ Quando uma mensagem suspeita é identificada, o sistema pode:
 📋 Adicionar o usuário à lista de supervisão quando necessário.
 
 🗄️ Banco de dados
-A GamesRun utiliza um banco de dados relacional com MySQL.
+O ambiente local usa H2 em arquivo (`GamesRun/data/gamesrun`) para manter os dados entre reinicializações. Para conectar ao MySQL, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` antes de iniciar o Spring Boot; por exemplo, `DB_URL=jdbc:mysql://localhost:3306/gamesrun`.
+
+▶️ Executar localmente
+Na pasta `GamesRun`, execute `sh mvnw spring-boot:run`. A página ficará disponível em `http://localhost:8080` e os endpoints em `/api`.
 
 📋 Requisitos funcionais
 Código	Requisito
