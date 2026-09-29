@@ -25,6 +25,9 @@ public class Produto {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
+    @Column(nullable = false)
+    private int estoque;
+
     public Long getId() {
         return id;
     }
@@ -52,4 +55,13 @@ public class Produto {
     public void setPreco(BigDecimal preco) {
         this.preco = preco;
     }
+
+    public int getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(int estoque) {
+        this.estoque = estoque;
+    }
 }
+

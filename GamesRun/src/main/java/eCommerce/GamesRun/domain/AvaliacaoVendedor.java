@@ -30,4 +30,20 @@ public class AvaliacaoVendedor {
     public String getComentario() {
         return comentario;
     }
+
+    public void setAvaliadorId(Long avaliadorId) {
+        this.avaliadorId = avaliadorId;
+    }
+
+    public void setVendedorId(Long vendedorId) {
+        this.vendedorId = vendedorId;
+    }
+
+    public void setNota(int nota) {
+        this.nota = nota;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
+    }
 }

@@ -1,13 +1,11 @@
 package eCommerce.GamesRun.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import eCommerce.GamesRun.domain.Usuario;
 
-public interface UsuarioRepository extends JpaRepository<Long, Id> {
-
-
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+	Optional<Usuario> findByNick(String nick);
 }

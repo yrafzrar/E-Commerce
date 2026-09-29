@@ -26,4 +26,16 @@ public class Carrinho {
     public int getQuantidade() {
         return quantidade;
     }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
+
+    public void setAnuncioId(Long anuncioId) {
+        this.anuncioId = anuncioId;
+    }
+
+    public void setQuantidade(int quantidade) {
+        this.quantidade = quantidade;
+    }
 }

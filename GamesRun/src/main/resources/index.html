@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GamesRun - Marketplace Gamer & Retro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            yellow: '#FFCC00',
+                            yellowDark: '#FFB800',
+                            dark: '#121212',
+                            card: '#1E1E24',
+                            purple: '#8A2BE2',
+                            purpleLight: '#9d4edd',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #f3f4f6;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a35;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFCC00;
+        }
+        /* Pulse glow animation */
+        .glow-yellow {
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.3);
+        }
+        .glow-purple {
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #FFCC00 0%, #9d4edd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#121212] text-gray-100">
+
+    <header class="sticky top-0 z-50 bg-[#1E1E24]/90 backdrop-blur-md border-b border-gray-800 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20 gap-4">
+                
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
+                    <div class="w-12 h-12 rounded-xl bg-brand-yellow flex items-center justify-center text-black font-black text-2xl shadow-lg shadow-yellow-500/20 transform hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-[#121212] fa-gamepad text-2xl text-[#121212]"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black tracking-wider text-white">GAMES<span class="text-brand-yellow">RUN</span></span>
+                        <span class="block text-[10px] text-gray-400 font-bold uppercase tracking-widest -mt-1">Retro & Next-Gen</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                    <form onsubmit="handleSearch(event)" class="relative">
+                        <input type="text" id="searchInput" placeholder="Busque jogos, consoles (ex: Nintendo 3DS, N64, PS5)..." 
+                            class="w-full bg-[#121212] text-white placeholder-gray-500 border border-gray-700 rounded-full py-2.5 pl-5 pr-12 focus:outline-none focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow transition-all">
+                        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 bg-brand-yellow rounded-full flex items-center justify-center text-[#121212] hover:bg-yellow-400 transition-colors">
+                            <i class="fa-solid fa-magnifying-glass font-bold"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Navigation Links & User Actions -->
+                <div class="flex items-center gap-3 sm:gap-5">
+                    <!-- API Status Badge -->
+                    <div id="apiStatusBadge" title="Status da Conexão com Backend Java Spring Boot" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-gray-800 border border-gray-700 text-gray-300">
+                        <span id="apiStatusDot" class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                        <span id="apiStatusText">Checando API...</span>
+                    </div>
+
+                    <button onclick="navigateTo('home')" class="hover:text-brand-yellow transition-colors font-medium text-sm hidden lg:block">
+                        <i class="fa-solid fa-store mr-1.5"></i> Catálogo
+                    </button>
+
+                    <button onclick="navigateTo('vendedor')" class="hover:text-brand-yellow transition-colors font-medium text-sm hidden lg:block">
+                        <i class="fa-solid fa-plus-circle mr-1.5 text-brand-purpleLight"></i> Anunciar
+                    </button>
+
+                    <button onclick="navigateTo('chat')" class="relative hover:text-brand-yellow transition-colors font-medium text-sm hidden sm:block">
+                        <i class="fa-solid fa-shield-halved text-brand-purpleLight mr-1"></i> Chat AntiGolpe
+                    </button>
+
+                    <!-- Cart Icon -->
+                    <button onclick="navigateTo('carrinho')" class="relative p-2.5 text-gray-300 hover:text-brand-yellow transition-colors">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-brand-yellow text-black font-extrabold text-xs w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#1E1E24]">0</span>
+                    </button>
+
+                    <!-- User Account / Auth -->
+                    <div class="relative group" id="userMenuContainer">
+                        <button onclick="handleUserAction()" class="flex items-center gap-2 bg-[#121212] border border-gray-700 hover:border-brand-yellow px-3 py-2 rounded-xl transition-all">
+                            <i class="fa-solid fa-user-astronaut text-brand-yellow text-lg"></i>
+                            <span id="userNameDisplay" class="text-sm font-semibold hidden md:inline">Entrar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar (visible on small screens) -->
+            <div class="pb-3 md:hidden">
+                <form onsubmit="handleSearch(event)" class="relative">
+                    <input type="text" id="searchInputMobile" placeholder="Buscar consoles, fitas, jogos..." 
+                        class="w-full bg-[#121212] text-white placeholder-gray-500 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm focus:outline-none focus:border-brand-yellow">
+                    <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center text-[#121212]">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- MAIN SPA CONTENT CONTAINER -->
+    <main id="app" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Views will be dynamically injected here via JS -->
+    </main>
+
+    <div id="authModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-[#1E1E24] border border-gray-800 rounded-2xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl">
+            <button onclick="toggleUserModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Modal Header -->
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-brand-yellow text-black font-bold text-2xl rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 id="authModalTitle" class="text-2xl font-bold text-white">Acessar GamesRun</h3>
+                <p class="text-gray-400 text-sm mt-1">Conecte-se para comprar ou vender itens gamers com segurança</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">E-mail Gamer</label>
+                        <input type="email" id="loginEmail" required placeholder="seu@email.com"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Senha</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <button type="submit" class="w-full bg-brand-yellow hover:bg-yellow-400 text-[#121212] font-bold py-3 rounded-xl transition-colors shadow-lg shadow-yellow-500/20">
+                    Entrar na Conta
+                </button>
+                <p class="text-center text-sm text-gray-400 mt-4">
+                    Não tem uma conta? <button type="button" onclick="switchAuthMode('signup')" class="text-brand-yellow hover:underline font-semibold">Cadastre-se</button>
+                </p>
+            </form>
+
+            <!-- Signup Form (Hidden by default) -->
+            <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Nome Completo</label>
+                    <input type="text" id="signupNome" required placeholder="Seu Nome Gamer"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">E-mail</label>
+                    <input type="email" id="signupEmail" required placeholder="seu@email.com"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">CPF</label>
+                    <input type="text" id="signupCpf" required placeholder="000.000.000-00"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Senha</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••"
+                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-brand-yellow">
+                </div>
+                <button type="submit" class="w-full bg-brand-purple hover:bg-purple-600 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-purple-500/20">
+                    Criar Conta
+                </button>
+                <p class="text-center text-sm text-gray-400 mt-4">
+                    Já possui conta? <button type="button" onclick="switchAuthMode('login')" class="text-brand-yellow hover:underline font-semibold">Fazer Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-[#1E1E24] border-t border-gray-800 mt-16 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-brand-yellow flex items-center justify-center text-black font-bold">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <span class="text-xl font-black text-white">GAMES<span class="text-brand-yellow">RUN</span></span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed">O marketplace especializado no universo dos videogames. Compre, venda e colecione com segurança protegida por IA.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-wider">Navegação</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" onclick="navigateTo('home'); return false;" class="hover:text-brand-yellow transition-colors">Catálogo Completo</a></li>
+                        <li><a href="#" onclick="navigateTo('vendedor'); return false;" class="hover:text-brand-yellow transition-colors">Anunciar Console/Jogo</a></li>
+                        <li><a href="#" onclick="navigateTo('chat'); return false;" class="hover:text-brand-yellow transition-colors">Chat de Negociação AntiGolpe</a></li>
+                        <li><a href="#" onclick="filterByCategory('Retro'); return false;" class="hover:text-brand-yellow transition-colors">Consoles Retrô</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-wider">Segurança & Entregas</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><i class="fa-solid fa-shield-halved text-brand-yellow mr-2"></i> Proteção ao Comprador</li>
+                        <li><i class="fa-solid fa-[#FFCC00] fa-truck-fast mr-2"></i> Envio com Rastreamento</li>
+                        <li><i class="fa-solid fa-store mr-2 text-brand-purpleLight"></i> Pontos de Coleta GamesRun</li>
+                        <li><i class="fa-solid fa-robot mr-2 text-green-400"></i> Monitoramento AntiGolpe Ativo</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 uppercase text-xs tracking-wider">Integração Backend</h4>
+                    <p class="text-xs text-gray-400 mb-2">Conectado ao Spring Boot REST Services em:</p>
+                    <code class="text-xs bg-[#121212] px-2 py-1 rounded border border-gray-700 text-brand-yellow font-mono block w-max">http://localhost:8080</code>
+                    <p class="text-xs text-gray-500 mt-2">Suporta fallback dinâmico offline para dev/testes.</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
+                <p>&copy; 2026 GamesRun E-Commerce. Todos os direitos reservados.</p>
+                <div class="flex gap-4">
+                    <span class="hover:text-gray-400 cursor-pointer">Termos de Uso</span>
+                    <span class="hover:text-gray-400 cursor-pointer">Política de Privacidade</span>
+                    <span class="hover:text-gray-400 cursor-pointer">Suporte</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           1. CONFIGURAÇÕES E ESTADO GLOBAL DA APLICAÇÃO
+           ========================================================================== */
+        const API_BASE_URL = '';
+
+        // Estado do usuário e carrinho mantido em memória / localStorage
+        let appState = {
+            currentUser: JSON.parse(localStorage.getItem('gamesrun_user')) || null,
+            cart: JSON.parse(localStorage.getItem('gamesrun_cart')) || [],
+            products: [],
+            categories: [],
+            announcements: [],
+            orders: [],
+            paymentMethod: 'pix',
+            isBackendConnected: false,
+            currentView: 'home',
+            selectedProduct: null,
+            chatMessages: [
+                { sender: 'vendedor', text: 'Olá! O produto está perfeito com caixa original e funcionando 100%.', time: '10:14' },
+                { sender: 'sistema', text: '🛡️ Sistema AntiGolpe GamesRun ativo nesta conversa. Nunca faça pagamentos por fora da plataforma!', time: '10:14' }
+            ]
+        };
+
+        /* ==========================================================================
+           2. MOCK DATA PARA FALLBACK (CASO O SPRING BOOT ESTEJA OFFLINE)
+           ========================================================================== */
+        const mockCategories = [
+            { id: 1, nome: 'Nintendo 3DS', icone: 'fa-gamepad' },
+            { id: 2, nome: 'Nintendo 64', icone: 'fa-tv' },
+            { id: 3, nome: 'PlayStation 5', icone: 'fa-playstation' },
+            { id: 4, nome: 'Xbox Series', icone: 'fa-xbox' },
+            { id: 5, nome: 'Retro & Colecionáveis', icone: 'fa-gem' }
+        ];
+
+        const mockProducts = [
+            {
+                id: 101,
+                nome: "Console Nintendo 3DS XL - Edição Zelda Hyrule (Completo na Caixa)",
+                preco: 1450.00,
+                descricao: "Aparelho em excelente estado de conservação, completo com berço, manuais, caneta Stylus original e fonte oficial. Telas sem riscos, IPS superior.",
+                categoria: { id: 1, nome: 'Nintendo 3DS' },
+                estadoConservacao: "Usado - Como Novo",
+                imagemUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
+                vendedor: { id: 2, nome: "RetroCollector_SP", avaliacao: 4.9 }
+            },
+            {
+                id: 102,
+                nome: "Cartucho Super Mario 64 - N64 Original Gradiente",
+                preco: 320.00,
+                descricao: "Fita original nacional Gradiente para Nintendo 64. Label frontal e traseira em ótimo estado. Placa higienizada e testada, salvando perfeitamente.",
+                categoria: { id: 2, nome: 'Nintendo 64' },
+                estadoConservacao: "Usado - Bom Estado",
+                imagemUrl: "https://images.unsplash.com/photo-1526509767008-0a0664e32049?auto=format&fit=crop&w=800&q=80",
+                vendedor: { id: 3, nome: "N64_Kingdom", avaliacao: 5.0 }
+            },
+            {
+                id: 103,
+                nome: "The Legend of Zelda: Ocarina of Time 3D - 3DS",
+                preco: 190.00,
+                descricao: "Jogo em mídia física para Nintendo 3DS. Acompanha capa, encarte e panfletos originais. Idioma em inglês.",
+                categoria: { id: 1, nome: 'Nintendo 3DS' },
+                estadoConservacao: "Usado - Excelente",
+                imagemUrl: "https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?auto=format&fit=crop&w=800&q=80",
+                vendedor: { id: 2, nome: "RetroCollector_SP", avaliacao: 4.9 }
+            },
+            {
+                id: 104,
+                nome: "Console PlayStation 5 1TB Digital Slim + Controle DualSense",
+                preco: 3599.00,
+                descricao: "PS5 Slim modelo digital com 1TB de SSD ultra-rápido. Acompanha controle DualSense Midnight Black e nota fiscal.",
+                categoria: { id: 3, nome: 'PlayStation 5' },
+                estadoConservacao: "Novo - Lacrado",
+                imagemUrl: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
+                vendedor: { id: 4, nome: "GamesRun Oficial", avaliacao: 5.0 }
+            },
+            {
+                id: 105,
+                nome: "Controle Nintendo 64 Transparente Fumaça (Atomic Purple)",
+                preco: 250.00,
+                descricao: "Controle original N64 com analógico novinho, firme (10/10). Botões macios e cabo sem desgastes.",
+                categoria: { id: 2, nome: 'Nintendo 64' },
+                estadoConservacao: "Usado - Ótimo",
+                imagemUrl: "https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?auto=format&fit=crop&w=800&q=80",
+                vendedor: { id: 3, nome: "N64_Kingdom", avaliacao: 5.0 }
+            }
+        ];
+
+        /* ==========================================================================
+           3. CLIENTE DE API HTTP (FETCH COM TRATAMENTO E FALLBACK)
+           ========================================================================== */
+        async function fetchAPI(endpoint, options = {}) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+            let response;
+            try {
+                response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(options.headers || {})
+                    },
+                    signal: controller.signal
+                });
+            } catch (err) {
+                console.warn(`[GamesRun API] Falha de conexão em ${endpoint}:`, err.message);
+                updateApiStatus(false);
+                return null;
+            } finally {
+                clearTimeout(timeoutId);
+            }
+
+            updateApiStatus(true);
+            if (!response.ok) {
+                const body = await response.json().catch(() => null);
+                throw new Error(body?.message || `Falha na API (${response.status})`);
+            }
+            if (response.status === 204) return true;
+            return response.json();
+        }
+
+        function updateApiStatus(isConnected) {
+            appState.isBackendConnected = isConnected;
+            const badge = document.getElementById('apiStatusBadge');
+            const dot = document.getElementById('apiStatusDot');
+            const text = document.getElementById('apiStatusText');
+
+            if (!badge || !dot || !text) return;
+
+            badge.classList.remove('hidden');
+            if (isConnected) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
+                text.innerText = "API Spring Boot On";
+                text.className = "text-green-400 font-mono text-xs";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                text.innerText = "Modo Demo (Offline)";
+                text.className = "text-amber-400 font-mono text-xs";
+            }
+        }
+
+        /* ==========================================================================
+           4. INICIALIZAÇÃO E CARREGAMENTO DE DADOS
+           ========================================================================== */
+        async function initApp() {
+            updateCartBadge();
+            updateUserDisplay();
+
+            try {
+                const apiCategories = await fetchAPI('/api/categorias/listar');
+                appState.categories = Array.isArray(apiCategories) && apiCategories.length ? apiCategories : mockCategories;
+                const apiAnnouncements = await fetchAPI('/api/anuncios/listar');
+                appState.products = Array.isArray(apiAnnouncements) && apiAnnouncements.length
+                    ? apiAnnouncements.map(normalizeAnnouncement)
+                    : (apiAnnouncements ? [] : mockProducts);
+                if (appState.currentUser) await refreshAccountData();
+            } catch (error) {
+                console.error('[GamesRun API] Não foi possível carregar o catálogo:', error);
+                appState.categories = appState.categories.length ? appState.categories : mockCategories;
+                appState.products = appState.products.length ? appState.products : mockProducts;
+                showToast(error.message, 'error');
+            }
+
+            navigateTo('home');
+        }
+
+        function normalizeAnnouncement(announcement) {
+            const category = appState.categories.find(item => Number(item.id) === Number(announcement.categoriaId));
+            return {
+                ...announcement,
+                nome: announcement.produto || announcement.nome,
+                categoria: category || { id: announcement.categoriaId, nome: 'Gamer' },
+                imagemUrl: announcement.imagemUrl || '',
+                estadoConservacao: announcement.estadoConservacao || 'Não informado',
+                vendedor: announcement.vendedorId ? { nome: `Vendedor #${announcement.vendedorId}` } : null
+            };
+        }
+
+        /* ==========================================================================
+           5. ROTEADOR SINGLE PAGE APPLICATION (SPA)
+           ========================================================================== */
+        function navigateTo(viewName, param = null) {
+            appState.currentView = viewName;
+            const mainContainer = document.getElementById('app');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            switch (viewName) {
+                case 'home':
+                    renderHomeView(mainContainer);
+                    break;
+                case 'produto':
+                    renderProductDetailView(mainContainer, param);
+                    break;
+                case 'carrinho':
+                    renderCartView(mainContainer);
+                    break;
+                case 'checkout':
+                    renderCheckoutView(mainContainer);
+                    break;
+                case 'chat':
+                    renderChatView(mainContainer);
+                    break;
+                case 'vendedor':
+                    renderVendedorView(mainContainer);
+                    break;
+                case 'pedidos':
+                    renderPedidosView(mainContainer);
+                    break;
+                default:
+                    renderHomeView(mainContainer);
+            }
+        }
+
+        /* ==========================================================================
+           6. RENDERIZAÇÃO DE VIEWS / TELAS
+           ========================================================================== */
+
+        /* --- TELA 1: HOME / CATÁLOGO --- */
+        function renderHomeView(container) {
+            container.innerHTML = `
+                <!-- Hero Banner Gamer -->
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/60 via-[#1E1E24] to-[#1E1E24] border border-gray-800 p-8 sm:p-12 mb-10 shadow-2xl">
+                    <div class="relative z-10 max-w-2xl">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-yellow text-black mb-4">
+                            🔥 Destaques Retrô & Next-Gen
+                        </span>
+                        <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight mb-4">
+                            Compre & Venda com <span class="gradient-text">Segurança Total</span> protegida por IA
+                        </h1>
+                        <p class="text-gray-300 text-base mb-6 leading-relaxed">
+                            A maior comunidade para colecionadores de Nintendo 3DS, N64, PlayStation, Xbox e relíquias gamer do Brasil.
+                        </p>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="filterByCategory('Nintendo 3DS')" class="bg-brand-yellow hover:bg-yellow-400 text-black font-extrabold px-6 py-3 rounded-xl transition-all shadow-lg shadow-yellow-500/20">
+                                Explorar Nintendo 3DS
+                            </button>
+                            <button onclick="filterByCategory('Nintendo 64')" class="bg-brand-purple hover:bg-purple-600 text-white font-extrabold px-6 py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20">
+                                Ver Nintendo 64
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 lg:opacity-30 pointer-events-none flex items-center justify-center">
+                        <i class="fa-solid fa-gamepad text-[220px] text-brand-yellow"></i>
+                    </div>
+                </div>
+
+                <!-- Categorias Bar -->
+                <div class="mb-10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list text-brand-yellow"></i> Categorias em Destaque
+                        </h3>
+                        <button onclick="resetFilters()" class="text-xs text-gray-400 hover:text-brand-yellow font-semibold">Limpar Filtros</button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                        ${appState.categories.map(cat => `
+                            <button onclick="filterByCategory('${cat.nome}')" class="flex items-center gap-3 bg-[#1E1E24] border border-gray-800 hover:border-brand-yellow p-4 rounded-xl text-left transition-all group">
+                                <div class="w-10 h-10 rounded-lg bg-[#121212] flex items-center justify-center text-brand-yellow group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid ${cat.icone || 'fa-gamepad'} text-lg"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-sm text-white group-hover:text-brand-yellow transition-colors">${cat.nome}</span>
+                                    <span class="text-[10px] text-gray-500 uppercase font-semibold">Ver Itens</span>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Feed de Produtos -->
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 id="catalogTitle" class="text-2xl font-black text-white tracking-tight">Catálogo de Anúncios</h3>
+                        <span class="text-xs text-gray-400">${appState.products.length} itens encontrados</span>
+                    </div>
+
+                    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        ${renderProductCards(appState.products)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProductCards(productList) {
+            if (!productList || productList.length === 0) {
+                return `
+                    <div class="col-span-full text-center py-12 bg-[#1E1E24] rounded-2xl border border-gray-800">
+                        <i class="fa-solid fa-box-open text-5xl text-gray-600 mb-3 block"></i>
+                        <h4 class="text-lg font-bold text-white">Nenhum produto encontrado</h4>
+                        <p class="text-gray-400 text-sm mt-1">Tente pesquisar com outros termos ou selecione outra categoria.</p>
+                        <button onclick="resetFilters()" class="mt-4 bg-brand-yellow text-black font-bold px-4 py-2 rounded-xl text-sm">Ver Todos os Produtos</button>
+                    </div>
+                `;
+            }
+
+            return productList.map(prod => `
+                <div class="bg-[#1E1E24] border border-gray-800 hover:border-brand-yellow/50 rounded-2xl overflow-hidden flex flex-col justify-between transition-all hover:-translate-y-1 shadow-lg group">
+                    <div>
+                        <!-- Image Container -->
+                        <div class="relative h-48 bg-[#121212] overflow-hidden cursor-pointer" onclick="navigateTo('produto', ${prod.id})">
+                            <img src="${prod.imagemUrl}" alt="${prod.nome}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.src='https://placehold.co/600x400/1E1E24/FFCC00?text=GamesRun+Item'">
+                            <span class="absolute top-3 left-3 bg-black/80 backdrop-blur-md text-brand-yellow text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border border-yellow-500/30">
+                                ${prod.categoria?.nome || 'Gamer'}
+                            </span>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-5">
+                            <div class="text-xs text-gray-400 mb-1 flex items-center justify-between">
+                                <span><i class="fa-solid fa-tag text-brand-purpleLight mr-1"></i> ${prod.estadoConservacao || 'Excelente'}</span>
+                                <span class="text-green-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Disponível</span>
+                            </div>
+
+                            <h4 onclick="navigateTo('produto', ${prod.id})" class="font-bold text-white text-base line-clamp-2 hover:text-brand-yellow cursor-pointer transition-colors mb-3">
+                                ${prod.nome}
+                            </h4>
+
+                            <div class="text-2xl font-black text-brand-yellow tracking-tight mb-2">
+                                R$ ${parseFloat(prod.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>
+
+                            <div class="flex items-center gap-2 text-xs text-gray-400 border-t border-gray-800/80 pt-3">
+                                <i class="fa-solid fa-store text-gray-500"></i>
+                                <span class="truncate">Vendedor: <strong class="text-gray-300">${prod.vendedor?.nome || 'Vendedor Verificado'}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="p-5 pt-0">
+                        <button onclick="addToCart(${prod.id})" class="w-full bg-[#121212] hover:bg-brand-yellow text-white hover:text-black font-extrabold py-2.5 rounded-xl border border-gray-700 hover:border-brand-yellow transition-all flex items-center justify-center gap-2 text-sm shadow">
+                            <i class="fa-solid fa-cart-plus"></i> Adicionar ao Carrinho
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* --- TELA 2: DETALHES DO PRODUTO --- */
+        function renderProductDetailView(container, productId) {
+            const product = appState.products.find(p => p.id === productId) || appState.products[0];
+            appState.selectedProduct = product;
+
+            container.innerHTML = `
+                <div class="mb-6">
+                    <button onclick="navigateTo('home')" class="text-gray-400 hover:text-brand-yellow text-sm font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar para o Catálogo
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Coluna Foto/Galeria -->
+                    <div class="lg:col-span-7 bg-[#1E1E24] border border-gray-800 rounded-3xl p-4 sm:p-6 shadow-2xl">
+                        <div class="relative h-80 sm:h-96 rounded-2xl overflow-hidden bg-[#121212] mb-4 border border-gray-800">
+                            <img src="${product.imagemUrl}" alt="${product.nome}" class="w-full h-full object-contain p-2"
+                                 onerror="this.src='https://placehold.co/800x600/1E1E24/FFCC00?text=GamesRun'">
+                            <span class="absolute top-4 left-4 bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-full uppercase">
+                                ${product.categoria?.nome || 'Retro'}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-20 h-20 rounded-xl bg-[#121212] border-2 border-brand-yellow p-1 overflow-hidden cursor-pointer">
+                                <img src="${product.imagemUrl}" class="w-full h-full object-cover rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Informações e Compra -->
+                    <div class="lg:col-span-5 flex flex-col justify-between">
+                        <div class="bg-[#1E1E24] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl mb-6">
+                            <span class="text-xs text-brand-purpleLight font-extrabold uppercase tracking-widest block mb-2">
+                                <i class="fa-solid fa-shield-check"></i> Anúncio Verificado GamesRun
+                            </span>
+                            <h1 class="text-2xl sm:text-3xl font-black text-white mb-4 leading-snug">${product.nome}</h1>
+
+                            <div class="flex items-center gap-4 mb-6 pb-6 border-b border-gray-800">
+                                <div>
+                                    <span class="text-xs text-gray-400 block">Preço à Vista</span>
+                                    <span class="text-3xl sm:text-4xl font-black text-brand-yellow">
+                                        R$ ${parseFloat(product.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    </span>
+                                </div>
+                                <div class="bg-gray-800/80 px-3 py-1.5 rounded-xl border border-gray-700 text-xs text-gray-300">
+                                    <i class="fa-solid fa-credit-card text-brand-yellow mr-1"></i> Até 12x no cartão
+                                </div>
+                            </div>
+
+                            <!-- Estado do Item & Detalhes -->
+                            <div class="space-y-3 mb-6">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Estado de Conservação:</span>
+                                    <span class="font-bold text-white">${product.estadoConservacao || 'Excelente'}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Garantia GamesRun:</span>
+                                    <span class="font-bold text-green-400"><i class="fa-solid fa-check-circle"></i> 30 Dias AntiGolpe</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Vendedor:</span>
+                                    <span class="font-bold text-brand-yellow">${product.vendedor?.nome || 'Vendedor Verificado'}</span>
+                                </div>
+                            </div>
+
+                            <!-- Botões de Ação -->
+                            <div class="space-y-3">
+                                <button onclick="addToCart(${product.id}); navigateTo('carrinho')" class="w-full bg-brand-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl text-base transition-all shadow-lg shadow-yellow-500/20 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bolt text-lg"></i> Comprar Agora
+                                </button>
+                                <button onclick="addToCart(${product.id})" class="w-full bg-[#121212] hover:bg-gray-800 text-white font-bold py-3 rounded-xl border border-gray-700 text-sm transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-cart-shopping"></i> Adicionar ao Carrinho
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botão AntiGolpe Chat -->
+                        <div class="bg-gradient-to-r from-purple-900/40 to-[#1E1E24] border border-purple-500/30 rounded-2xl p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-brand-purple flex items-center justify-center text-white text-lg">
+                                    <i class="fa-solid fa-comments"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Negociar via Chat AntiGolpe</h4>
+                                    <p class="text-xs text-gray-400">Tire dúvidas direto com o vendedor</p>
+                                </div>
+                            </div>
+                            <button onclick="navigateTo('chat')" class="bg-brand-purple hover:bg-purple-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors">
+                                Abrir Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descrição detalhada -->
+                <div class="mt-8 bg-[#1E1E24] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-file-text text-brand-yellow"></i> Descrição do Item
+                    </h3>
+                    <p class="text-gray-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
+                        ${product.descricao}
+                    </p>
+                </div>
+            `;
+        }
+
+        /* --- TELA 3: CARRINHO DE COMPRAS --- */
+        function renderCartView(container) {
+            const subtotal = appState.cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+            const frete = appState.cart.length > 0 ? 25.00 : 0.00;
+            const total = subtotal + frete;
+
+            container.innerHTML = `
+                <h2 class="text-3xl font-black text-white mb-6 flex items-center gap-3">
+                    <i class="fa-solid fa-cart-shopping text-brand-yellow"></i> Seu Carrinho de Compras
+                </h2>
+
+                ${appState.cart.length === 0 ? `
+                    <div class="text-center py-16 bg-[#1E1E24] border border-gray-800 rounded-3xl">
+                        <i class="fa-solid fa-cart-flatbed text-6xl text-gray-600 mb-4 block"></i>
+                        <h3 class="text-xl font-bold text-white mb-2">Seu carrinho está vazio!</h3>
+                        <p class="text-gray-400 text-sm mb-6">Explore o nosso catálogo e garanta seus games e consoles retrô.</p>
+                        <button onclick="navigateTo('home')" class="bg-brand-yellow text-black font-extrabold px-6 py-3 rounded-xl hover:bg-yellow-400 transition-colors">
+                            Ir às Compras
+                        </button>
+                    </div>
+                ` : `
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Lista de Itens -->
+                        <div class="lg:col-span-8 space-y-4">
+                            ${appState.cart.map((item, index) => `
+                                <div class="bg-[#1E1E24] border border-gray-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                                        <img src="${item.imagemUrl}" class="w-20 h-20 object-cover rounded-xl bg-[#121212] border border-gray-700"
+                                             onerror="this.src='https://placehold.co/200x200/1E1E24/FFCC00?text=Game'">
+                                        <div>
+                                            <h4 class="font-bold text-white text-base leading-snug">${item.nome}</h4>
+                                            <span class="text-xs text-brand-yellow font-bold">R$ ${parseFloat(item.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} un.</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Controles de Quantidade -->
+                                    <div class="flex items-center justify-between w-full sm:w-auto gap-6 border-t sm:border-t-0 border-gray-800 pt-3 sm:pt-0">
+                                        <div class="flex items-center border border-gray-700 rounded-xl bg-[#121212]">
+                                            <button onclick="updateCartQuantity(${index}, -1)" class="px-3 py-1 text-gray-400 hover:text-white font-bold text-lg">-</button>
+                                            <span class="px-3 py-1 text-sm font-bold text-white">${item.quantidade}</span>
+                                            <button onclick="updateCartQuantity(${index}, 1)" class="px-3 py-1 text-gray-400 hover:text-white font-bold text-lg">+</button>
+                                        </div>
+
+                                        <span class="font-black text-white text-lg min-w-[100px] text-right">
+                                            R$ ${parseFloat(item.preco * item.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </span>
+
+                                        <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-300 p-2">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+
+                            <!-- Opções de Entrega (Segurança GamesRun) -->
+                            <div class="bg-[#1E1E24] border border-gray-800 rounded-2xl p-6 mt-6">
+                                <h4 class="font-bold text-white mb-4 text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-truck text-brand-yellow"></i> Escolha a Opção de Envio
+                                </h4>
+                                <div class="space-y-3">
+                                    <label class="flex items-center justify-between p-3 border border-brand-yellow/50 rounded-xl bg-[#121212] cursor-pointer">
+                                        <div class="flex items-center gap-3">
+                                            <input type="radio" name="shipping" checked class="accent-brand-yellow">
+                                            <div>
+                                                <span class="block text-sm font-bold text-white">Entrega Expressa / Sedex (Loggi/Correios)</span>
+                                                <span class="text-xs text-gray-400">Com rastreamento e seguro total contra extravio</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-bold text-brand-yellow text-sm">R$ 25,00</span>
+                                    </label>
+                                    <label class="flex items-center justify-between p-3 border border-gray-800 rounded-xl bg-[#121212] cursor-pointer hover:border-gray-700">
+                                        <div class="flex items-center gap-3">
+                                            <input type="radio" name="shipping" class="accent-brand-yellow">
+                                            <div>
+                                                <span class="block text-sm font-bold text-white">Retirada em Ponto Oficial GamesRun</span>
+                                                <span class="text-xs text-gray-400">Retire e teste na hora em uma loja parceira</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-bold text-green-400 text-sm">Grátis</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo do Pedido -->
+                        <div class="lg:col-span-4">
+                            <div class="bg-[#1E1E24] border border-gray-800 rounded-3xl p-6 shadow-2xl sticky top-28">
+                                <h3 class="text-xl font-extrabold text-white mb-6 border-b border-gray-800 pb-4">Resumo da Compra</h3>
+
+                                <div class="space-y-3 text-sm mb-6">
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Subtotal dos Produtos:</span>
+                                        <span>R$ ${subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div class="flex justify-between text-gray-300">
+                                        <span>Envio / Frete:</span>
+                                        <span>R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-black text-white pt-3 border-t border-gray-800">
+                                        <span>Total:</span>
+                                        <span class="text-brand-yellow text-2xl">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                </div>
+
+                                <button onclick="navigateTo('checkout')" class="w-full bg-brand-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl text-base transition-all shadow-lg shadow-yellow-500/20 mb-3">
+                                    Avançar para Pagamento <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </button>
+                                <button onclick="navigateTo('home')" class="w-full bg-[#121212] text-gray-400 hover:text-white font-semibold py-2.5 rounded-xl text-xs">
+                                    Continuar Escolhendo Produtos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `}
+            `;
+        }
+
+        /* --- TELA 4: CHECKOUT E PAGAMENTO --- */
+        function renderCheckoutView(container) {
+            const subtotal = appState.cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+            const total = subtotal + 25.00;
+
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <button onclick="navigateTo('carrinho')" class="text-gray-400 hover:text-brand-yellow text-sm font-semibold mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Voltar ao Carrinho
+                    </button>
+
+                    <div class="bg-[#1E1E24] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                        <h2 class="text-2xl font-black text-white mb-2 flex items-center gap-3">
+                            <i class="fa-solid fa-credit-card text-brand-yellow"></i> Finalizar Compra Segura
+                        </h2>
+                        <p class="text-xs text-gray-400 mb-8">Pagamento protegido com Liberação de Saldo Pós-Recebimento</p>
+
+                        <!-- Seleção de Forma de Pagamento -->
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-400 mb-3">Forma de Pagamento</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <button onclick="selectPaymentMethod('pix')" id="btnMethodPix" class="p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2">
+                                        <i class="fa-solid fa-qrcode text-brand-yellow text-2xl"></i> PIX Instantâneo
+                                    </button>
+                                    <button onclick="selectPaymentMethod('cartao')" id="btnMethodCartao" class="p-4 rounded-2xl border border-gray-800 bg-[#121212] text-gray-400 font-bold text-sm flex flex-col items-center gap-2 hover:border-gray-700">
+                                        <i class="fa-solid fa-credit-card text-2xl"></i> Cartão
+                                    </button>
+                                    <button onclick="selectPaymentMethod('boleto')" id="btnMethodBoleto" class="p-4 rounded-2xl border border-gray-800 bg-[#121212] text-gray-400 font-bold text-sm flex flex-col items-center gap-2 hover:border-gray-700">
+                                        <i class="fa-solid fa-barcode text-2xl"></i> Boleto
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Área do PIX (Padrão) -->
+                            <div id="paymentAreaPix" class="bg-[#121212] border border-gray-800 rounded-2xl p-6">
+                                <h4 class="text-lg font-bold text-white mb-2">Pedido aguardará confirmação de pagamento</h4>
+                                <p class="text-xs text-gray-400">O backend registra o pedido e a forma de pagamento escolhida. A cobrança ainda não é processada nesta versão.</p>
+                                <p class="text-xs text-gray-400 mt-3">Total do pedido: <strong class="text-brand-yellow text-sm">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></p>
+                            </div>
+
+                            <!-- Endereço de Entrega Rápido -->
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Endereço de Entrega</label>
+                                <input type="text" id="checkoutAddress" value="Rua dos Gamers, 777 - Apto 42 - São Paulo / SP" class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                            </div>
+
+                            <!-- Botão de Confirmação -->
+                            <button onclick="executeCheckout()" class="w-full bg-brand-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl text-base transition-all shadow-lg shadow-yellow-500/20">
+                                <i class="fa-solid fa-check-circle"></i> Registrar Pedido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectPaymentMethod(method) {
+            appState.paymentMethod = method;
+            const btnPix = document.getElementById('btnMethodPix');
+            const btnCartao = document.getElementById('btnMethodCartao');
+            const btnBoleto = document.getElementById('btnMethodBoleto');
+
+            [btnPix, btnCartao, btnBoleto].forEach(btn => {
+                if(btn) {
+                    btn.className = "p-4 rounded-2xl border border-gray-800 bg-[#121212] text-gray-400 font-bold text-sm flex flex-col items-center gap-2";
+                }
+            });
+
+            if (method === 'pix' && btnPix) {
+                btnPix.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+            } else if (method === 'cartao' && btnCartao) {
+                btnCartao.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+            } else if (method === 'boleto' && btnBoleto) {
+                btnBoleto.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+            }
+        }
+
+        /* --- TELA 5: CHAT COM IA ANTIGOLPE --- */
+        function renderChatView(container) {
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto">
+                    <!-- Banner explicativo AntiGolpe -->
+                    <div class="bg-gradient-to-r from-purple-900/60 to-purple-950/80 border border-brand-purple/40 rounded-3xl p-6 mb-6 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-purple flex items-center justify-center text-white text-2xl shadow-lg">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-black text-white">Chat com Algoritmo AntiGolpe GamesRun</h3>
+                                <p class="text-xs text-purple-200">Qualquer tentativa de transação fora da plataforma será alertada imediatamente.</p>
+                            </div>
+                        </div>
+                        <span class="hidden sm:inline-block px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/40 rounded-full text-xs font-bold">
+                            <i class="fa-solid fa-shield-halved"></i> IA Proteção Ativa
+                        </span>
+                    </div>
+
+                    <!-- Area de Mensagens -->
+                    <div class="bg-[#1E1E24] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
+                        <!-- Chat Header -->
+                        <div class="bg-[#121212] px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-brand-yellow text-black font-extrabold flex items-center justify-center">
+                                    V
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-white text-sm">Vendedor: RetroCollector_SP</h4>
+                                    <span class="text-[10px] text-green-400 font-semibold">● Online agora</span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500 font-mono">Ref: Console Nintendo 3DS XL</span>
+                        </div>
+
+                        <!-- Chat Body -->
+                        <div id="chatMessagesBox" class="p-6 h-96 overflow-y-auto space-y-4 bg-[#18181C]">
+                            ${appState.chatMessages.map(msg => renderChatMessage(msg)).join('')}
+                        </div>
+
+                        <!-- Chat Input Box -->
+                        <div class="p-4 bg-[#121212] border-t border-gray-800">
+                            <form onsubmit="handleSendChatMessage(event)" class="flex gap-3">
+                                <input type="text" id="chatInputText" placeholder="Digite sua mensagem para o vendedor..." required
+                                    class="flex-1 bg-[#1E1E24] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-purple">
+                                <button type="submit" class="bg-brand-purple hover:bg-purple-600 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-purple-500/20 flex items-center gap-2">
+                                    <span>Enviar</span>
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </form>
+                            <span class="block text-[11px] text-gray-500 mt-2 text-center">
+                                <i class="fa-solid fa-lock text-brand-yellow"></i> Mensagens são monitoradas para garantir pagamentos e entregas seguras.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Auto-scroll para o fim da conversa
+            const box = document.getElementById('chatMessagesBox');
+            if(box) box.scrollTop = box.scrollHeight;
+        }
+
+        function renderChatMessage(msg) {
+            if (msg.sender === 'sistema') {
+                return `
+                    <div class="bg-purple-950/60 border border-purple-800/60 text-purple-200 text-xs p-3 rounded-2xl text-center my-2 max-w-lg mx-auto">
+                        ${msg.text}
+                    </div>
+                `;
+            } else if (msg.sender === 'alerta') {
+                return `
+                    <div class="bg-red-950/80 border-2 border-red-500 text-red-200 text-xs p-4 rounded-2xl my-2 max-w-xl mx-auto shadow-xl animate-bounce">
+                        <div class="flex items-center gap-2 font-black text-red-400 text-sm mb-1">
+                            <i class="fa-solid fa-triangle-exclamation text-lg"></i> ALERTA DE SEGURANÇA (ANTIGOLPE)
+                        </div>
+                        ${msg.text}
+                    </div>
+                `;
+            }
+
+            const isMe = msg.sender === 'comprador';
+            return `
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                    <div class="max-w-xs sm:max-w-md ${isMe ? 'bg-brand-yellow text-black font-medium' : 'bg-[#2A2A35] text-white'} p-3.5 rounded-2xl text-sm shadow">
+                        ${msg.text}
+                    </div>
+                    <span class="text-[10px] text-gray-500 mt-1 px-1">${msg.time}</span>
+                </div>
+            `;
+        }
+
+        /* --- TELA 6: ÁREA DO VENDEDOR (CADASTRAR ANÚNCIO) --- */
+        function renderVendedorView(container) {
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto">
+                    <div class="bg-[#1E1E24] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                        <div class="flex items-center gap-3 mb-6 border-b border-gray-800 pb-4">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-yellow text-black flex items-center justify-center text-2xl font-black">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black text-white">Criar Novo Anúncio</h2>
+                                <p class="text-xs text-gray-400">Anuncie seus videogames e consoles para milhares de colecionadores</p>
+                            </div>
+                        </div>
+
+                        <form onsubmit="handleCreateAnnouncement(event)" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Título do Anúncio / Produto *</label>
+                                <input type="text" id="announcementTitle" required placeholder="Ex: Game Boy Advance SP Tribal Original" 
+                                    class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Preço de Venda (R$) *</label>
+                                    <input type="number" step="0.01" id="announcementPrice" required placeholder="350.00" 
+                                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Categoria *</label>
+                                    <select id="announcementCategory" required class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                                        ${appState.categories.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Estado de Conservação *</label>
+                                    <select id="announcementCondition" required class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                                        <option value="Novo - Lacrado">Novo - Lacrado</option>
+                                        <option value="Usado - Como Novo">Usado - Como Novo</option>
+                                        <option value="Usado - Bom Estado">Usado - Bom Estado</option>
+                                        <option value="Com Detalhes / Sucata">Com Detalhes / Para Peças</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-gray-400 mb-1">URL da Imagem do Produto *</label>
+                                    <input type="url" id="announcementImage" required placeholder="https://..." value="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80"
+                                        class="w-full bg-[#121212] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-yellow">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Descrição Detalhada *</label>
+                                <textarea id="announcementDescription" rows="4" required placeholder="Descreva os detalhes do console/jogo, o que acompanha, funcionamento..." 
+                                    class="w-full bg-[#121212] border border-gray-700 rounded-xl p-4 text-white text-sm focus:outline-none focus:border-brand-yellow"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full bg-brand-yellow hover:bg-yellow-400 text-black font-extrabold py-4 rounded-xl text-base transition-all shadow-lg shadow-yellow-500/20">
+                                Publicar Anúncio no GamesRun
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* --- TELA 7: MEUS PEDIDOS / HISTÓRICO --- */
+        function renderPedidosView(container) {
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-black text-white mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-box text-brand-yellow"></i> Meus Pedidos Realizados
+                    </h2>
+
+                    ${appState.orders.length === 0 ? `
+                        <div class="text-center py-16 bg-[#1E1E24] border border-gray-800 rounded-3xl">
+                            <i class="fa-solid fa-receipt text-6xl text-gray-600 mb-4 block"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Você ainda não fez nenhum pedido</h3>
+                            <p class="text-gray-400 text-sm mb-6">Seus pedidos e status de envio aparecerão aqui.</p>
+                            <button onclick="navigateTo('home')" class="bg-brand-yellow text-black font-bold px-6 py-3 rounded-xl">Explorar Catálogo</button>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${appState.orders.map(order => `
+                                <div class="bg-[#1E1E24] border border-gray-800 rounded-2xl p-6 shadow-xl">
+                                    <div class="flex flex-wrap items-center justify-between border-b border-gray-800 pb-4 mb-4 gap-2">
+                                        <div>
+                                            <span class="text-xs text-gray-400 block">Pedido #${order.id}</span>
+                                            <span class="text-xs font-mono text-gray-500">${order.data}</span>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold rounded-full">
+                                                ${order.status || 'Pedido registrado'}
+                                            </span>
+                                            <span class="text-lg font-black text-brand-yellow">R$ ${parseFloat(order.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <h4 class="text-xs font-bold uppercase text-gray-400">Itens Comprados:</h4>
+                                        <ul class="text-sm text-gray-200 divide-y divide-gray-800">
+                                            ${order.itens.map(i => `
+                                                <li class="py-2 flex justify-between">
+                                                    <span>${i.quantidade}x ${i.nome}</span>
+                                                    <span class="text-gray-400">R$ ${parseFloat(i.preco).toFixed(2)}</span>
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           7. FUNÇÕES DE NEGÓCIO, CARRINHO E INTERAÇÕES COM BACKEND
+           ========================================================================== */
+
+        // Adicionar Produto ao Carrinho
+        async function addToCart(productId) {
+            const prod = appState.products.find(p => p.id === productId);
+            if (!prod) return;
+
+            if (appState.currentUser) {
+                try {
+                    const result = await fetchAPI(`/api/carrinhos/usuario/${appState.currentUser.id}/itens`, {
+                        method: 'POST',
+                        body: JSON.stringify({ anuncioId: prod.id, quantidade: 1 })
+                    });
+                    if (!result && appState.isBackendConnected) return;
+                } catch (error) {
+                    showToast(error.message, 'error');
+                    return;
+                }
+            }
+
+            const existingIndex = appState.cart.findIndex(item => item.id === productId);
+            if (existingIndex > -1) {
+                appState.cart[existingIndex].quantidade += 1;
+            } else {
+                appState.cart.push({
+                    id: prod.id,
+                    nome: prod.nome,
+                    preco: prod.preco,
+                    imagemUrl: prod.imagemUrl,
+                    quantidade: 1
+                });
+            }
+
+            saveCart();
+            updateCartBadge();
+            if (appState.currentView === 'carrinho') renderCartView(document.getElementById('app'));
+            showToast(`"${prod.nome}" foi adicionado ao carrinho!`, 'success');
+        }
+
+        async function updateCartQuantity(index, delta) {
+            if (appState.cart[index]) {
+                const item = appState.cart[index];
+                const quantity = item.quantidade + delta;
+                if (appState.currentUser) {
+                    try {
+                        const endpoint = `/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`;
+                        const result = quantity <= 0
+                            ? await fetchAPI(endpoint, { method: 'DELETE' })
+                            : await fetchAPI(`${endpoint}?quantidade=${quantity}`, { method: 'PUT' });
+                        if (!result && appState.isBackendConnected) return;
+                    } catch (error) {
+                        showToast(error.message, 'error');
+                        return;
+                    }
+                }
+                if (quantity <= 0) {
+                    appState.cart.splice(index, 1);
+                } else {
+                    item.quantidade = quantity;
+                }
+                saveCart();
+                updateCartBadge();
+                renderCartView(document.getElementById('app'));
+            }
+        }
+
+        async function removeFromCart(index) {
+            if (appState.cart[index]) {
+                const item = appState.cart[index];
+                if (appState.currentUser) {
+                    try {
+                        const result = await fetchAPI(`/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`, { method: 'DELETE' });
+                        if (!result && appState.isBackendConnected) return;
+                    } catch (error) {
+                        showToast(error.message, 'error');
+                        return;
+                    }
+                }
+                appState.cart.splice(index, 1);
+                saveCart();
+                updateCartBadge();
+                renderCartView(document.getElementById('app'));
+                showToast('Item removido do carrinho.', 'info');
+            }
+        }
+
+        function saveCart() {
+            localStorage.setItem('gamesrun_cart', JSON.stringify(appState.cart));
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartCountBadge');
+            const totalCount = appState.cart.reduce((acc, item) => acc + item.quantidade, 0);
+            if (badge) badge.innerText = totalCount;
+        }
+
+        /* --- FILTROS E BUSCA DO CATÁLOGO --- */
+        async function handleSearch(e) {
+            e.preventDefault();
+            const query = (e.currentTarget.querySelector('input')?.value || '').trim();
+            if (!query) return;
+
+            showToast(`Buscando por "${query}"...`, 'info');
+            try {
+                const searchResults = await fetchAPI(`/api/anuncios/buscar?produto=${encodeURIComponent(query)}`);
+                const results = Array.isArray(searchResults)
+                    ? searchResults.map(normalizeAnnouncement)
+                    : appState.products.filter(product => (product.nome || '').toLowerCase().includes(query.toLowerCase()));
+                renderFilteredProducts(results, `Resultados para: "${query}"`);
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function filterByCategory(categoryName) {
+            const filtered = appState.products.filter(p => p.categoria?.nome?.toLowerCase() === categoryName.toLowerCase());
+            renderFilteredProducts(filtered, `Categoria: ${categoryName}`);
+        }
+
+        function resetFilters() {
+            if (appState.currentView !== 'home') {
+                navigateTo('home');
+            } else {
+                renderHomeView(document.getElementById('app'));
+            }
+        }
+
+        function renderFilteredProducts(list, titleText) {
+            if (appState.currentView !== 'home') navigateTo('home');
+            
+            setTimeout(() => {
+                const grid = document.getElementById('productGrid');
+                const title = document.getElementById('catalogTitle');
+                if (grid) grid.innerHTML = renderProductCards(list);
+                if (title) title.innerText = titleText;
+            }, 50);
+        }
+
+        async function refreshAccountData() {
+            const userId = appState.currentUser.id;
+            const [remoteCart, remoteOrders] = await Promise.all([
+                fetchAPI(`/api/carrinhos/usuario/${userId}`),
+                fetchAPI(`/api/pedidos/comprador/${userId}`)
+            ]);
+
+            if (Array.isArray(remoteCart) && remoteCart.length) {
+                appState.cart = remoteCart.map(entry => {
+                    const product = appState.products.find(item => Number(item.id) === Number(entry.anuncioId));
+                    return product ? { ...product, quantidade: entry.quantidade } : null;
+                }).filter(Boolean);
+                saveCart();
+                updateCartBadge();
+            } else if (Array.isArray(remoteCart) && appState.cart.length) {
+                await Promise.all(appState.cart.map(item => fetchAPI(
+                    `/api/carrinhos/usuario/${userId}/itens`,
+                    { method: 'POST', body: JSON.stringify({ anuncioId: item.id, quantidade: item.quantidade }) }
+                )));
+            }
+            if (Array.isArray(remoteOrders)) appState.orders = remoteOrders.map(normalizeOrder);
+        }
+
+        function normalizeOrder(order) {
+            let items = [];
+            try {
+                items = JSON.parse(order.itensResumo || '[]');
+            } catch (error) {
+                console.warn('[GamesRun] Resumo de itens de pedido inválido:', error);
+            }
+            return {
+                ...order,
+                data: order.dataCriacao ? new Date(order.dataCriacao).toLocaleDateString('pt-BR') : 'Data não informada',
+                total: order.valorTotal,
+                itens: items
+            };
+        }
+
+        /* --- ENGINE DO CHAT ANTIGOLPE (ANALISADOR EM TEMPO REAL) --- */
+        function handleSendChatMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInputText');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Adiciona mensagem do comprador
+            appState.chatMessages.push({ sender: 'comprador', text: text, time: timeStr });
+            input.value = '';
+
+            // ANALISADOR IA ANTIGOLPE: Detecta palavras suspeitas
+            const suspicousKeywords = ['pix por fora', 'whatsapp', 'zap', 'transferencia direta', 'desconto por fora', 'chama no zap', 'deposito'];
+            const containsSuspectTerm = suspicousKeywords.some(keyword => text.toLowerCase().includes(keyword));
+
+            if (containsSuspectTerm) {
+                setTimeout(() => {
+                    appState.chatMessages.push({
+                        sender: 'alerta',
+                        text: '⚠️ O sistema identificou termos de transação fora da plataforma (ex: PIX por fora / WhatsApp). ATENÇÃO: Pagamentos realizados fora do GamesRun NÃO possuem garantia e configuram alto risco de golpe!',
+                        time: timeStr
+                    });
+                    renderChatView(document.getElementById('app'));
+                }, 400);
+            } else {
+                // Resposta simulada do vendedor
+                setTimeout(() => {
+                    appState.chatMessages.push({
+                        sender: 'vendedor',
+                        text: 'Perfeito! Pode concluir a compra diretamente pela plataforma que faço o envio hoje mesmo com o rastreio.',
+                        time: timeStr
+                    });
+                    renderChatView(document.getElementById('app'));
+                }, 1000);
+            }
+
+            renderChatView(document.getElementById('app'));
+        }
+
+        /* --- CADASTRAR NOVO ANÚNCIO (POST /anuncios) --- */
+        async function handleCreateAnnouncement(e) {
+            e.preventDefault();
+
+            if (!appState.currentUser) {
+                showToast('Entre na sua conta para publicar um anúncio.', 'error');
+                toggleUserModal();
+                return;
+            }
+
+            const title = document.getElementById('announcementTitle').value;
+            const price = parseFloat(document.getElementById('announcementPrice').value);
+            const categoryId = parseInt(document.getElementById('announcementCategory').value);
+            const condition = document.getElementById('announcementCondition').value;
+            const imageUrl = document.getElementById('announcementImage').value;
+            const description = document.getElementById('announcementDescription').value;
+
+            const announcement = {
+                produto: title,
+                preco: price,
+                descricao: description,
+                categoriaId: categoryId,
+                estadoConservacao: condition,
+                imagemUrl: imageUrl,
+                vendedorId: appState.currentUser.id
+            };
+
+            try {
+                const savedAnnouncement = await fetchAPI('/api/anuncios/cadastrar', {
+                    method: 'POST',
+                    body: JSON.stringify(announcement)
+                });
+                if (!savedAnnouncement) throw new Error('Backend indisponível. O anúncio não foi salvo.');
+                appState.products.unshift(normalizeAnnouncement(savedAnnouncement));
+                showToast('Anúncio cadastrado com sucesso!', 'success');
+                navigateTo('home');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        /* --- EXECUTAR CHECKOUT (POST /pedidos) --- */
+        async function executeCheckout() {
+            if (appState.cart.length === 0) return;
+
+            if (!appState.currentUser) {
+                showToast('Entre na sua conta para concluir o pedido.', 'error');
+                toggleUserModal();
+                return;
+            }
+
+            const total = appState.cart.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + 25.00;
+            const order = {
+                compradorId: appState.currentUser.id,
+                status: 'AGUARDANDO_PAGAMENTO',
+                dataCriacao: new Date().toISOString(),
+                valorTotal: total,
+                formaPagamento: appState.paymentMethod,
+                enderecoEntrega: document.getElementById('checkoutAddress').value.trim(),
+                itensResumo: JSON.stringify(appState.cart.map(item => ({
+                    nome: item.nome,
+                    preco: item.preco,
+                    quantidade: item.quantidade
+                })))
+            };
+
+            try {
+                const savedOrder = await fetchAPI('/api/pedidos/cadastrar', {
+                    method: 'POST',
+                    body: JSON.stringify(order)
+                });
+                if (!savedOrder) throw new Error('Backend indisponível. O pedido não foi registrado.');
+                const cartItems = [...appState.cart];
+                await Promise.all(cartItems.map(item => fetchAPI(
+                    `/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`,
+                    { method: 'DELETE' }
+                )));
+                appState.orders.unshift(normalizeOrder(savedOrder));
+                appState.cart = [];
+                saveCart();
+                updateCartBadge();
+                showToast('Pedido registrado com sucesso!', 'success');
+                navigateTo('pedidos');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        /* --- AUTENTICAÇÃO E MODAL --- */
+        function toggleUserModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.toggle('hidden');
+        }
+
+        function switchAuthMode(mode) {
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const title = document.getElementById('authModalTitle');
+
+            if (mode === 'signup') {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                title.innerText = 'Criar Conta no GamesRun';
+            } else {
+                signupForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                title.innerText = 'Acessar GamesRun';
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginPassword').value;
+
+            try {
+                const userApi = await fetchAPI('/api/usuarios/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ nick: email, senha })
+                });
+                if (!userApi) throw new Error('Backend indisponível. Não foi possível entrar.');
+                appState.currentUser = userApi;
+                localStorage.setItem('gamesrun_user', JSON.stringify(userApi));
+                await refreshAccountData();
+                updateUserDisplay();
+                toggleUserModal();
+                showToast(`Bem-vindo de volta, ${appState.currentUser.nome}!`, 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const nome = document.getElementById('signupNome').value;
+            const email = document.getElementById('signupEmail').value;
+            const cpf = document.getElementById('signupCpf').value;
+            const senha = document.getElementById('signupPassword').value;
+
+            try {
+                const userApi = await fetchAPI('/api/usuarios/cadastrar', {
+                    method: 'POST',
+                    body: JSON.stringify({ nome, nick: email, cpf: cpf.replace(/\D/g, ''), senha })
+                });
+                if (!userApi) throw new Error('Backend indisponível. A conta não foi criada.');
+                appState.currentUser = userApi;
+                localStorage.setItem('gamesrun_user', JSON.stringify(userApi));
+                await refreshAccountData();
+                updateUserDisplay();
+                toggleUserModal();
+                showToast('Conta criada com sucesso!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        function handleUserAction() {
+            if (appState.currentUser) {
+                navigateTo('pedidos');
+            } else {
+                toggleUserModal();
+            }
+        }
+
+        function updateUserDisplay() {
+            const display = document.getElementById('userNameDisplay');
+            if (display && appState.currentUser) {
+                display.innerText = appState.currentUser.nome;
+            } else if (display) {
+                display.innerText = 'Entrar';
+            }
+        }
+
+        /* --- UTILITÁRIO: TOAST NOTIFICATIONS --- */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-brand-purple';
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-5 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-5', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-5');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        /* --- INICIALIZAR APLICAÇÃO AO CARREGAR A PÁGINA --- */
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
