@@ -1,1 +1,2 @@
-https://orange-yodel-q76wwgpgrg49cpx9-8081.app.github.dev/h2-console/
+cd /workspaces/E-Commerce/GamesRun && ./mvnw spring-boot:run
+localhost:xxxx/h2-console
