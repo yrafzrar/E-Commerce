@@ -36,7 +36,11 @@ Quando uma mensagem suspeita é identificada, o sistema pode:
 📋 Adicionar o usuário à lista de supervisão quando necessário.
 
 🗄️ Banco de dados
-O ambiente local usa H2 em arquivo (`GamesRun/data/gamesrun`) para manter os dados entre reinicializações. Para conectar ao MySQL, configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD` antes de iniciar o Spring Boot; por exemplo, `DB_URL=jdbc:mysql://localhost:3306/gamesrun`.
+Por padrão, o ambiente local usa H2 em arquivo (`GamesRun/data/gamesrun.mv.db`), mantendo os dados entre reinicializações. O console do H2 fica disponível em `http://localhost:8080/h2-console`, com JDBC URL `jdbc:h2:file:./data/gamesrun`, usuário `sa` e senha vazia.
+
+Para usar MySQL, ative o perfil `mysql` e configure `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`; por exemplo: `SPRING_PROFILES_ACTIVE=mysql DB_URL=jdbc:mysql://localhost:3306/gamesrun DB_USERNAME=root DB_PASSWORD=root sh mvnw spring-boot:run`.
+
+Os testes usam um banco H2 em memória e não alteram os dados persistidos do ambiente local.
 
 ▶️ Executar localmente
 Na pasta `GamesRun`, execute `sh mvnw spring-boot:run`. A página ficará disponível em `http://localhost:8080` e os endpoints em `/api`.
