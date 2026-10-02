@@ -21,6 +21,7 @@ import eCommerce.GamesRun.repository.ProdutoRepository;
 import eCommerce.GamesRun.repository.AnuncioRepository;
 import eCommerce.GamesRun.repository.CarrinhoRepository;
 import eCommerce.GamesRun.repository.PedidoRepository;
+import eCommerce.GamesRun.repository.CategoriaRepository;
 import eCommerce.GamesRun.repository.UsuarioRepository;
 import tools.jackson.databind.ObjectMapper;
 
@@ -48,6 +49,9 @@ class GamesRunApplicationTests {
 	private PedidoRepository pedidoRepository;
 
 	@Autowired
+	private CategoriaRepository categoriaRepository;
+
+	@Autowired
 	private UsuarioRepository usuarioRepository;
 
 	@BeforeEach
@@ -56,6 +60,7 @@ class GamesRunApplicationTests {
 		pedidoRepository.deleteAll();
 		carrinhoRepository.deleteAll();
 		anuncioRepository.deleteAll();
+		categoriaRepository.deleteAll();
 		usuarioRepository.deleteAll();
 	}
 
@@ -118,6 +123,10 @@ class GamesRunApplicationTests {
 				.andExpect(jsonPath("$.senha").doesNotExist())
 				.andReturn();
 		long usuarioId = objectMapper.readTree(resultadoUsuario.getResponse().getContentAsString()).get("id").asLong();
+		var categoria = new eCommerce.GamesRun.domain.Categoria();
+		categoria.setNome("Consoles");
+		categoria.setDescricao("Jogos e consoles");
+		long categoriaId = categoriaRepository.save(categoria).getId();
 
 		mockMvc.perform(post("/api/usuarios/login")
 					.contentType(MediaType.APPLICATION_JSON)
@@ -130,8 +139,8 @@ class GamesRunApplicationTests {
 		MvcResult resultadoAnuncio = mockMvc.perform(post("/api/anuncios/cadastrar")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content("""
-							{"produto":"Controle retrô","descricao":"Em ótimo estado","preco":150.0,"categoriaId":1,"vendedorId":%d,"imagemUrl":"https://example.com/controle.jpg","estadoConservacao":"Usado"}
-							""".formatted(usuarioId)))
+							{"produto":"Controle retrô","descricao":"Em ótimo estado","preco":150.0,"categoriaId":%d,"vendedorId":%d,"imagemUrl":"https://example.com/controle.jpg","estadoConservacao":"Usado"}
+							""".formatted(categoriaId, usuarioId)))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.imagemUrl").value("https://example.com/controle.jpg"))
 				.andReturn();

@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 
 @Entity
 public class Usuario {
@@ -12,7 +13,15 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String nome, nick, senha, cpf;
+    @Column(unique = true, nullable = false)
+    private String nome;
+    @Column(unique = true, nullable = false)
+    private String nick;
+    @Column(unique = true, nullable = false)
+    private String cpf;
+    @Column(nullable = false)
+    private String senha;
+    @Column(nullable = false)
     private int idade;
 
 
@@ -56,3 +65,8 @@ public class Usuario {
         this.cpf = cpf;
     }
 }
+
+/*Ó Deus, nosso Pai,
+Obrigado por nos teres dado Carlo,
+modelo de vida para os jovens, e mensagem
+de amor para todos*/

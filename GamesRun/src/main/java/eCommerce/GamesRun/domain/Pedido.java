@@ -5,6 +5,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Pedido {
@@ -12,7 +15,11 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Column(name = "comprador_id")
     private Long compradorId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "comprador_id", insertable = false, updatable = false, nullable = false)
+    private Usuario comprador;
     private String status, dataCriacao;
     private String formaPagamento, enderecoEntrega;
     @Column(length = 4000)

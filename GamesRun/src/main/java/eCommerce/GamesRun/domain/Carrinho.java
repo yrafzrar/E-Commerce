@@ -4,14 +4,32 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(
+        name = "uk_carrinho_usuario_anuncio",
+        columnNames = { "usuario_id", "anuncio_id" }))
 public class Carrinho {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Long usuarioId, anuncioId;
+    @Column(name = "usuario_id")
+    private Long usuarioId;
+    @Column(name = "anuncio_id")
+    private Long anuncioId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "usuario_id", insertable = false, updatable = false, nullable = false)
+    private Usuario usuario;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "anuncio_id", insertable = false, updatable = false, nullable = false)
+    private Anuncio anuncio;
     private int quantidade = 1;
 
     public Long getId() {

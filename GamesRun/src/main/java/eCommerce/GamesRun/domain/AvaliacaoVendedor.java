@@ -4,6 +4,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
 
 @Entity
 public class AvaliacaoVendedor {
@@ -11,7 +15,16 @@ public class AvaliacaoVendedor {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private Long avaliadorId, vendedorId;
+    @Column(name = "avaliador_id")
+    private Long avaliadorId;
+    @Column(name = "vendedor_id")
+    private Long vendedorId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "avaliador_id", insertable = false, updatable = false, nullable = false)
+    private Usuario avaliador;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vendedor_id", insertable = false, updatable = false, nullable = false)
+    private Usuario vendedor;
     private int nota;
     private String comentario;
 
