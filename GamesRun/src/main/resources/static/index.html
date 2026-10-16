@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GamesRun - Marketplace Gamer & Retro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header >
+        <div>
+            <div>
+                <!-- Logo -->
+                <div onclick="navigateTo('home')">
+                    <div>
+                        <i></i>
+                    </div>
+                    <div>
+                        <span>GAMES<span>RUN</span></span>
+                        <span>Retro & Next-Gen</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div>
+                    <form onsubmit="handleSearch(event)">
+                        <input type="text" id="searchInput" placeholder="Busque jogos, consoles (ex: Nintendo 3DS, N64, PS5)...">
+                        <button type="submit">
+                            <i></i> Submit
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Navigation Links & User Actions -->
+                <div>
+                    <!-- API Status Badge -->
+                   
+
+                    <button onclick="navigateTo('home')">
+                        <i></i> Catálogo
+                    </button>
+
+                    <button onclick="navigateTo('vendedor')">
+                        <i></i> Anunciar
+                    </button>
+
+                    <button onclick="navigateTo('chat')">
+                        <i></i> Chat AntiGolpe
+                    </button>
+
+                    <!-- Cart Icon -->
+                    <button onclick="navigateTo('carrinho')" >
+                        <i></i>
+                        <span id="cartCountBadge">0</span>
+                    </button>
+
+                                <!-- ALTERADO AQUI: Adicionado inline-flex no container para ficar tudo alinhado na mesma linha -->
+                <div id="userMenuContainer">
+                    <button id="userActionButton" onclick="handleUserAction()">
+                        <i></i>
+                        <span id="userNameDisplay">Entrar</span>
+                    </button>
+
+                    <!-- ALTERADO AQUI: Botão de Sair com style="display: none;" para começar escondido e manter o estilo nativo dos outros botões -->
+                    <button id="logoutButton" onclick="logoutUser()" title="Sair da conta">
+                        <i></i> Sair
+                    </button>
+                </div>
+      
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar (visible on small screens) -->
+            <div>
+                <form onsubmit="handleSearch(event)">
+                    <input type="text" id="searchInputMobile" placeholder="Buscar consoles, fitas, jogos..." 
+                        >
+                    <button type="submit">
+                        <i>Submit</i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <div id="toastContainer"></div>
+
+    <!-- MAIN SPA CONTENT CONTAINER -->
+    <main id="app">
+        <!-- Views will be dynamically injected here via JS -->
+    </main>
+    <div id="authModal" >
+        <div>
+            <button onclick="toggleUserModal()">
+                <i></i> Fechar
+            </button>
+
+            <!-- Modal Header -->
+            <div>
+                <div>
+                    <i></i>
+                </div>
+                <h3 id="authModalTitle">Acessar GamesRun</h3>
+                <p>Conecte-se para comprar ou vender itens gamers com segurança</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div>
+                    <label>E-mail Gamer</label>
+                        <input type="email" id="loginEmail" required placeholder="seu@email.com"
+                        >
+                </div>
+                <div>
+                    <label >Senha</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••"
+                        >
+                </div>
+                <button type="submit">
+                    Entrar na Conta
+                </button>
+                <p>
+                    Não tem uma conta? <button type="button" onclick="switchAuthMode('signup')">Cadastre-se</button>
+                </p>
+            </form>
+
+            <!-- Signup Form (Hidden by default) -->
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div>
+                    <label >Nome Completo</label>
+                    <input type="text" id="signupNome" required placeholder="Seu Nome Gamer"
+                       >
+                </div>
+                <div>
+                    <label >E-mail</label>
+                    <input type="email" id="signupEmail" required placeholder="seu@email.com">
+                </div>
+                <div>
+                    <label>CPF</label>
+                    <input type="text" id="signupCpf" required placeholder="000.000.000-00">
+                </div>
+                <div>
+                    <label>Senha</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" id="logado" >
+                    Criar Conta
+                </button>
+                <p >
+                    Já possui conta? <button type="button" onclick="switchAuthMode('login')">Fazer Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <footer >
+        <div>
+            <div >
+                <div>
+                    <div>
+                        <div>
+                            <i></i>
+                        </div>
+                        <span>GAMES<span >RUN</span></span>
+                    </div>
+                    <p >O marketplace especializado no universo dos videogames. Compre, venda e colecione com segurança protegida por IA.</p>
+                </div>
+                <div>
+                    <h4>Navegação</h4>
+                    <ul >
+                        <li><a href="#" onclick="navigateTo('home'); return false;" >Catálogo Completo</a></li>
+                        <li><a href="#" onclick="navigateTo('vendedor'); return false;">Anunciar Console/Jogo</a></li>
+                        <li><a href="#" onclick="navigateTo('chat'); return false;" >Chat de Negociação AntiGolpe</a></li>
+                        <li><a href="#" onclick="filterByCategory('Retro'); return false;">Consoles Retrô</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 >Segurança & Entregas</h4>
+                    <ul >
+                        <li><i></i> Proteção ao Comprador</li>
+                        <li><i ></i> Envio com Rastreamento</li>
+                        <li><i></i> Pontos de Coleta GamesRun</li>
+                        <li><i></i> Monitoramento AntiGolpe Ativo</li>
+                    </ul>
+                </div>
+                
+            </div>
+            <div >
+                <p>&copy; 2026 GamesRun E-Commerce. Todos os direitos reservados.</p>
+                <div>
+                    <a  href="texto.txt">Termos de Uso</a>
+                    <span>Política de Privacidade</span>
+                    <span >Suporte</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

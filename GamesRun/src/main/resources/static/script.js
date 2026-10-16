@@ -1,0 +1,1280 @@
+
+        /* ==========================================================================
+           1. CONFIGURAÇÕES E ESTADO GLOBAL DA APLICAÇÃO
+           ========================================================================== */
+           const API_BASE_URL = '';
+
+           // Estado do usuário e carrinho mantido em memória / localStorage
+           let appState = {
+               currentUser: JSON.parse(localStorage.getItem('gamesrun_user')) || null,
+               cart: JSON.parse(localStorage.getItem('gamesrun_cart')) || [],
+               products: [],
+               categories: [],
+               announcements: [],
+               orders: [],
+               paymentMethod: 'pix',
+               isBackendConnected: false,
+               currentView: 'home',
+               selectedProduct: null,
+               chatMessages: [
+                   { sender: 'vendedor', text: 'Olá! O produto está perfeito com caixa original e funcionando 100%.', time: '10:14' },
+                   { sender: 'sistema', text: '🛡️ Sistema AntiGolpe GamesRun ativo nesta conversa. Nunca faça pagamentos por fora da plataforma!', time: '10:14' }
+               ]
+           };
+   
+           /* ==========================================================================
+              2. MOCK DATA PARA FALLBACK (CASO O SPRING BOOT ESTEJA OFFLINE)
+              ========================================================================== */
+           const mockCategories = [
+               { id: 1, nome: 'Nintendo 3DS', icone: 'fa-gamepad' },
+               { id: 2, nome: 'Nintendo 64', icone: 'fa-tv' },
+               { id: 3, nome: 'PlayStation 5', icone: 'fa-playstation' },
+               { id: 4, nome: 'Xbox Series', icone: 'fa-xbox' },
+               { id: 5, nome: 'Retro & Colecionáveis', icone: 'fa-gem' }
+           ];
+   
+   
+           /* ==========================================================================
+              3. CLIENTE DE API HTTP (FETCH COM TRATAMENTO E FALLBACK)
+              ========================================================================== */
+           async function fetchAPI(endpoint, options = {}) {
+               const controller = new AbortController();
+               const timeoutId = setTimeout(() => controller.abort(), 7000);
+   
+               let response;
+               try {
+                   response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                       ...options,
+                       headers: {
+                           'Content-Type': 'application/json',
+                           ...(options.headers || {})
+                       },
+                       signal: controller.signal
+                   });
+               } catch (err) {
+                   console.warn(`[GamesRun API] Falha de conexão em ${endpoint}:`, err.message);
+                   updateApiStatus(false);
+                   return null;
+               } finally {
+                   clearTimeout(timeoutId);
+               }
+   
+               updateApiStatus(true);
+               if (!response.ok) {
+                   const body = await response.json().catch(() => null);
+                   throw new Error(body?.message || `Falha na API (${response.status})`);
+               }
+               if (response.status === 204) return true;
+               return response.json();
+           }
+   
+           function updateApiStatus(isConnected) {
+               appState.isBackendConnected = isConnected;
+               const badge = document.getElementById('apiStatusBadge');
+               const dot = document.getElementById('apiStatusDot');
+               const text = document.getElementById('apiStatusText');
+   
+               if (!badge || !dot || !text) return;
+           }   
+   
+           /* ==========================================================================
+              4. INICIALIZAÇÃO E CARREGAMENTO DE DADOS
+              ========================================================================== */
+           async function initApp() {
+               updateCartBadge();
+               updateUserDisplay();
+   
+               try {
+                   const apiCategories = await fetchAPI('/api/categorias/listar');
+                   appState.categories = Array.isArray(apiCategories) && apiCategories.length ? apiCategories : mockCategories;
+                   const apiAnnouncements = await fetchAPI('/api/anuncios/listar');
+                   appState.products = Array.isArray(apiAnnouncements) && apiAnnouncements.length
+                       ? apiAnnouncements.map(normalizeAnnouncement)
+                       : (apiAnnouncements ? [] : mockProducts);
+                   if (appState.currentUser) await refreshAccountData();
+               } catch (error) {
+                   console.error('[GamesRun API] Não foi possível carregar o catálogo:', error);
+                   appState.categories = appState.categories.length ? appState.categories : mockCategories;
+                   appState.products = appState.products.length ? appState.products : mockProducts;
+                   showToast(error.message, 'error');
+               }
+   
+               navigateTo('home');
+           }
+   
+           function normalizeAnnouncement(announcement) {
+               const category = appState.categories.find(item => Number(item.id) === Number(announcement.categoriaId));
+               return {
+                   ...announcement,
+                   nome: announcement.produto || announcement.nome,
+                   categoria: category || { id: announcement.categoriaId, nome: 'Gamer' },
+                   imagemUrl: announcement.imagemUrl || '',
+                   estadoConservacao: announcement.estadoConservacao || 'Não informado',
+                   vendedor: announcement.vendedorId ? { nome: `Vendedor #${announcement.vendedorId}` } : null
+               };
+           }
+   
+           /* ==========================================================================
+              5. ROTEADOR SINGLE PAGE APPLICATION (SPA)
+              ========================================================================== */
+           function navigateTo(viewName, param = null) {
+               appState.currentView = viewName;
+               const mainContainer = document.getElementById('app');
+               window.scrollTo({ top: 0, behavior: 'smooth' });
+   
+               switch (viewName) {
+                   case 'home':
+                       renderHomeView(mainContainer);
+                       break;
+                   case 'produto':
+                       renderProductDetailView(mainContainer, param);
+                       break;
+                   case 'carrinho':
+                       renderCartView(mainContainer);
+                       break;
+                   case 'checkout':
+                       renderCheckoutView(mainContainer);
+                       break;
+                   case 'chat':
+                       renderChatView(mainContainer);
+                       break;
+                   case 'vendedor':
+                       renderVendedorView(mainContainer);
+                       break;
+                   case 'pedidos':
+                       renderPedidosView(mainContainer);
+                       break;
+                   default:
+                       renderHomeView(mainContainer);
+               }
+           }
+   
+           /* ==========================================================================
+              6. RENDERIZAÇÃO DE VIEWS / TELAS
+              ========================================================================== */
+   
+           /* --- TELA 1: HOME / CATÁLOGO --- */
+           function renderHomeView(container) {
+               container.innerHTML = `
+                   <!-- Hero Banner Gamer -->
+                   <div>
+                       <div
+               >
+                           <span>
+                               🔥 Destaques Retrô & Next-Gen
+                           </span>
+                           <h1>
+                               Compre & Venda com <span >Segurança Total</span> protegida por IA
+                           </h1>
+                           <p>
+                               A maior comunidade para colecionadores de Nintendo 3DS, N64, PlayStation, Xbox e relíquias gamer do Brasil.
+                           </p>
+                           <div>
+                               <button onclick="filterByCategory('Nintendo 3DS')">
+                                   Explorar Nintendo 3DS
+                               </button>
+                               <button onclick="filterByCategory('Nintendo 64')" >
+                                   Ver Nintendo 64
+                               </button>
+                           </div>
+                       </div>
+                       <div>
+                           <i ></i>
+                       </div>
+                   </div>
+   
+                   <!-- Categorias Bar -->
+                   <div >
+                       <div>
+                           <h3>
+                               <i 
+                               ></i> Categorias em Destaque
+                           </h3>
+                           <button onclick="resetFilters()" >Limpar Filtros</button>
+                       </div>
+                       <div>
+                           ${appState.categories.map(cat => `
+                               <button onclick="filterByCategory('${cat.nome}')">
+                                   <div>
+                                       <i></i>
+                                   </div>
+                                   <div>
+                                       <span>${cat.nome}</span>
+                                       <span>Ver Itens</span>
+                                   </div>
+                               </button>
+                           `).join('')}
+                       </div>
+                   </div>
+   
+                   <!-- Feed de Produtos -->
+                   <div>
+                       <div>
+                           <h3 id="catalogTitle" </h3>
+                           <span>${appState.products.length} itens encontrados</span>
+                       </div>
+   
+                       <div id="productGrid">
+                           ${renderProductCards(appState.products)}
+                       </div>
+                   </div>
+               `;
+           }
+   
+           function renderProductCards(productList) {
+               if (!productList || productList.length === 0) {
+                   return `
+                       <div>
+                           
+                           <h4>Nenhum produto encontrado</h4>
+                           <p >Tente pesquisar com outros termos ou selecione outra categoria.</p>
+                           <button onclick="resetFilters()>Ver Todos os Produtos</button>
+                       </div>
+                   `;
+               }
+   
+               return productList.map(prod => `
+                   <div>
+                       <div>
+                           <!-- Image Container -->
+                           <div onclick="navigateTo('produto', ${prod.id})">
+                               <img src="${prod.imagemUrl}" alt="${prod.nome}
+                                    onerror="this.src='https://placehold.co/600x400/1E1E24/FFCC00?text=GamesRun+Item'">
+                               <span>
+                                   ${prod.categoria?.nome || 'Gamer'}
+                               </span>
+                           </div>
+   
+                           <!-- Content -->
+                           <div>
+                               <div>
+                                   <span><i></i> ${prod.estadoConservacao || 'Excelente'}</span>
+                                   <span><i></i> Disponível</span>
+                               </div>
+   
+                               <h4 onclick="navigateTo('produto', ${prod.id})">
+                                   ${prod.nome}
+                               </h4>
+   
+                               <div>
+                                   R$ ${parseFloat(prod.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                               </div>
+   
+                               <div>
+                                   <i></i>
+                                   <span>Vendedor: <strong>${prod.vendedor?.nome || 'Vendedor Verificado'}</strong></span>
+                               </div>
+                           </div>
+                       </div>
+   
+                       <!-- Action Button -->
+                       <div>
+                           <button onclick="addToCart(${prod.id})">
+                               <i></i> Adicionar ao Carrinho
+                           </button>
+                       </div>
+                   </div>
+               `).join('');
+           }
+   
+           /* --- TELA 2: DETALHES DO PRODUTO --- */
+           function renderProductDetailView(container, productId) {
+               const product = appState.products.find(p => p.id === productId) || appState.products[0];
+               appState.selectedProduct = product;
+   
+               container.innerHTML = `
+                   <div>
+                       <button onclick="navigateTo('home')">
+                           <i></i> Voltar para o Catálogo
+                       </button>
+                   </div>
+   
+                   <div>
+                       <!-- Coluna Foto/Galeria -->
+                       <div>
+                           <div>
+                               <img src="${product.imagemUrl}" alt="${product.nome}"
+                                    onerror="this.src='https://placehold.co/800x600/1E1E24/FFCC00?text=GamesRun'">
+                               <span>
+                                   ${product.categoria?.nome || 'Retro'}
+                               </span>
+                           </div>
+                           <div>
+                               <div>
+                                   <img src="${product.imagemUrl}">
+                               </div>
+                           </div>
+                       </div>
+   
+                       <!-- Coluna Informações e Compra -->
+                       <div>
+                           <div>
+                               <span>
+                                   <i></i> Anúncio Verificado GamesRun
+                               </span>
+                               <h1>${product.nome}</h1>
+   
+                               <div>
+                                   <div>
+                                       <span>Preço à Vista</span>
+                                       <span>
+                                           R$ ${parseFloat(product.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                       </span>
+                                   </div>
+                                   <div>
+                                       <i></i> Até 12x no cartão
+                                   </div>
+                               </div>
+   
+                               <!-- Estado do Item & Detalhes -->
+                               <div>
+                                   <div>
+                                       <span>Estado de Conservação:</span>
+                                       <span>${product.estadoConservacao || 'Excelente'}</span>
+                                   </div>
+                                   <div>
+                                       <span>Garantia GamesRun:</span>
+                                       <span><i></i> 30 Dias AntiGolpe</span>
+                                   </div>
+                                   <div>
+                                       <span>Vendedor:</span>
+                                       <span>${product.vendedor?.nome || 'Vendedor Verificado'}</span>
+                                   </div>
+                               </div>
+   
+                               <!-- Botões de Ação -->
+                               <div>
+                                   <button onclick="addToCart(${product.id}); navigateTo('carrinho')">
+                                       <i></i> Comprar Agora
+                                   </button>
+                                   <button onclick="addToCart(${product.id})">
+                                       <i></i> Adicionar ao Carrinho
+                                   </button>
+                               </div>
+                           </div>
+   
+                           <!-- Botão AntiGolpe Chat -->
+                           <div>
+                               <div>
+                                   <div>
+                                       <i></i>
+                                   </div>
+                                   <div>
+                                       <h4>Negociar via Chat AntiGolpe</h4>
+                                       <p>Tire dúvidas direto com o vendedor</p>
+                                   </div>
+                               </div>
+                               <button onclick="navigateTo('chat')">
+                                   Abrir Chat
+                               </button>
+                           </div>
+                       </div>
+                   </div>
+   
+                   <!-- Descrição detalhada -->
+                   <div>
+                       <h3>
+                           <i></i> Descrição do Item
+                       </h3>
+                       <p>
+                           ${product.descricao}
+                       </p>
+                   </div>
+               `;
+           }
+   
+           /* --- TELA 3: CARRINHO DE COMPRAS --- */
+           function renderCartView(container) {
+               const subtotal = appState.cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+               const frete = appState.cart.length > 0 ? 25.00 : 0.00;
+               const total = subtotal + frete;
+   
+               container.innerHTML = `
+                   <h2>
+                       <i></i> Seu Carrinho de Compras
+                   </h2>
+   
+                   ${appState.cart.length === 0 ? `
+                       <div>
+                           <i></i>
+                           <h3>Seu carrinho está vazio!</h3>
+                           <p>Explore o nosso catálogo e garanta seus games e consoles retrô.</p>
+                           <button onclick="navigateTo('home')">
+                               Ir às Compras
+                           </button>
+                       </div>
+                   ` : `
+                       <div>
+                           <!-- Lista de Itens -->
+                           <div>
+                               ${appState.cart.map((item, index) => `
+                                   <div>
+                                       <div>
+                                           <img src="${item.imagemUrl}"
+                                                onerror="this.src='https://placehold.co/200x200/1E1E24/FFCC00?text=Game'">
+                                           <div>
+                                               <h4>${item.nome}</h4>
+                                               <span>R$ ${parseFloat(item.preco).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} un.</span>
+                                           </div>
+                                       </div>
+   
+                                       <!-- Controles de Quantidade -->
+                                       <div>
+                                           <div>
+                                               <button onclick="updateCartQuantity(${index}, -1)">-</button>
+                                               <span>${item.quantidade}</span>
+                                               <button onclick="updateCartQuantity(${index}, 1)">+</button>
+                                           </div>
+   
+                                           <span>
+                                               R$ ${parseFloat(item.preco * item.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                           </span>
+   
+                                           <button onclick="removeFromCart(${index})">
+                                               <i></i>
+                                           </button>
+                                       </div>
+                                   </div>
+                               `).join('')}
+   
+                               <!-- Opções de Entrega (Segurança GamesRun) -->
+                               <div>
+                                   <h4>
+                                       <i></i> Escolha a Opção de Envio
+                                   </h4>
+                                   <div>
+                                       <label>
+                                           <div>
+                                               <input type="radio" name="shipping" checked>
+                                               <div>
+                                                   <span>Entrega Expressa / Sedex (Loggi/Correios)</span>
+                                                   <span>Com rastreamento e seguro total contra extravio</span>
+                                               </div>
+                                           </div>
+                                           <span>R$ 25,00</span>
+                                       </label>
+                                       <label>
+                                           <div>
+                                               <input type="radio" name="shipping">
+                                               <div>
+                                                   <span>Retirada em Ponto Oficial GamesRun</span>
+                                                   <span>Retire e teste na hora em uma loja parceira</span>
+                                               </div>
+                                           </div>
+                                           <span>Grátis</span>
+                                       </label>
+                                   </div>
+                               </div>
+                           </div>
+   
+                           <!-- Resumo do Pedido -->
+                           <div>
+                               <div>
+                                   <h3>Resumo da Compra</h3>
+   
+                                   <div>
+                                       <div>
+                                           <span>Subtotal dos Produtos:</span>
+                                           <span>R$ ${subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                       </div>
+                                       <div>
+                                           <span>Envio / Frete:</span>
+                                           <span>R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                       </div>
+                                       <div>
+                                           <span>Total:</span>
+                                           <span>R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                       </div>
+                                   </div>
+   
+                                   <button onclick="navigateTo('checkout')">
+                                       Avançar para Pagamento <i></i>
+                                   </button>
+                                   <button onclick="navigateTo('home')">
+                                       Continuar Escolhendo Produtos
+                                   </button>
+                               </div>
+                           </div>
+                       </div>
+                   `}
+               `;
+           }
+   
+           /* --- TELA 4: CHECKOUT E PAGAMENTO --- */
+           function renderCheckoutView(container) {
+               const subtotal = appState.cart.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+               const total = subtotal + 25.00;
+   
+               container.innerHTML = `
+                   <div>
+                       <button onclick="navigateTo('carrinho')">
+                           <i></i> Voltar ao Carrinho
+                       </button>
+   
+                       <div>
+                           <h2>
+                               <i></i> Finalizar Compra Segura
+                           </h2>
+                           <p>Pagamento protegido com Liberação de Saldo Pós-Recebimento</p>
+   
+                           <!-- Seleção de Forma de Pagamento -->
+                           <div>
+                               <div>
+                                   <label>Forma de Pagamento</label>
+                                   <div>
+                                       <button onclick="selectPaymentMethod('pix')" id="btnMethodPix">
+                                           <i></i> PIX Instantâneo
+                                       </button>
+                                       <button onclick="selectPaymentMethod('cartao')" id="btnMethodCartao">
+                                           <i></i> Cartão
+                                       </button>
+                                       <button onclick="selectPaymentMethod('boleto')" id="btnMethodBoleto">
+                                           <i></i> Boleto
+                                       </button>
+                                   </div>
+                               </div>
+   
+                               <!-- Área do PIX (Padrão) -->
+                               <div id="paymentAreaPix">
+                                   <h4>Pedido aguardará confirmação de pagamento</h4>
+                                   <button onclick="confimarpix()">Confirmar PIX</button>
+                                   </button>
+                                   <p id = "mensagemStatus" class ="mensagem-sucesso"></p>
+                             
+                                   <p>Total do pedido: <strong>R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></p>
+                                   
+                               </div>
+   
+                               <!-- Endereço de Entrega Rápido -->
+                               <div>
+                                   <label>Endereço de Entrega</label>
+                                   <input type="text" id="checkoutAddress" value="Rua dos Gamers, 777 - Apto 42 - São Paulo / SP">
+                               </div>
+   
+                               <!-- Botão de Confirmação -->
+                               <button onclick="executeCheckout()">
+                                   <i></i> Registrar Pedido
+                               </button>
+                           </div>
+                       </div>
+                   </div>
+               `;
+           }
+   
+   
+           function paymentAreaPix() {
+               showToast("Você finalizou a compra! Obrigado pela confiança");
+           }
+   
+           function selectPaymentMethod(method) {
+               appState.paymentMethod = method;
+               const btnPix = document.getElementById('btnMethodPix');
+               const btnCartao = document.getElementById('btnMethodCartao');
+               const btnBoleto = document.getElementById('btnMethodBoleto');
+   
+               [btnPix, btnCartao, btnBoleto].forEach(btn => {
+                   if(btn) {
+                   }
+               });
+   
+               if (method === 'pix' && btnPix) {
+                   btnPix.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+               } else if (method === 'cartao' && btnCartao) {
+                   btnCartao.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+               } else if (method === 'boleto' && btnBoleto) {
+                   btnBoleto.className = "p-4 rounded-2xl border-2 border-brand-yellow bg-brand-yellow/10 text-white font-bold text-sm flex flex-col items-center gap-2";
+               }
+           }
+   
+           /* --- TELA 5: CHAT COM IA ANTIGOLPE --- */
+           function renderChatView(container) {
+               container.innerHTML = `
+                   <div>
+                       <!-- Banner explicativo AntiGolpe -->
+                       <div>
+                           <div>
+                               <div>
+                                   <i></i>
+                               </div>
+                               <div>
+                                   <h3>Chat com Algoritmo AntiGolpe GamesRun</h3>
+                                   <p>Qualquer tentativa de transação fora da plataforma será alertada imediatamente.</p>
+                               </div>
+                           </div>
+                           <span>
+                               <i></i> IA Proteção Ativa
+                           </span>
+                       </div>
+   
+                       <!-- Area de Mensagens -->
+                       <div>
+                           <!-- Chat Header -->
+                           <div>
+                               <div>
+                                   <div>
+                                       V
+                                   </div>
+                                   <div>
+                                       <h4>Vendedor: RetroCollector_SP</h4>
+                                       <span>● Online agora</span>
+                                   </div>
+                               </div>
+                               <span>Ref: Console Nintendo 3DS XL</span>
+                           </div>
+   
+                           <!-- Chat Body -->
+                           <div id="chatMessagesBox">
+                               ${appState.chatMessages.map(msg => renderChatMessage(msg)).join('')}
+                           </div>
+   
+                           <!-- Chat Input Box -->
+                           <div>
+                               <form onsubmit="handleSendChatMessage(event)">
+                                   <input type="text" id="chatInputText" placeholder="Digite sua mensagem para o vendedor..." required>
+                                   <button type="submit">
+                                       <span>Enviar</span>
+                                       <i></i>
+                                   </button>
+                               </form>
+                               <span>
+                                   <i></i> Mensagens são monitoradas para garantir pagamentos e entregas seguras.
+                               </span>
+                           </div>
+                       </div>
+                   </div>
+               `;
+   
+               // Auto-scroll para o fim da conversa
+               const box = document.getElementById('chatMessagesBox');
+               if(box) box.scrollTop = box.scrollHeight;
+           }
+   
+           function renderChatMessage(msg) {
+               if (msg.sender === 'sistema') {
+                   return `
+                       <div>
+                           ${msg.text}
+                       </div>
+                   `;
+               } else if (msg.sender === 'alerta') {
+                   return `
+                       <div>
+                           <div>
+                               <i></i> ALERTA DE SEGURANÇA (ANTIGOLPE)
+                           </div>
+                           ${msg.text}
+                       </div>
+                   `;
+               }
+   
+               const isMe = msg.sender === 'comprador';
+               return `
+                   <div>
+                       <div>
+                           ${msg.text}
+                       </div>
+                       <span>${msg.time}</span>
+                   </div>
+               `;
+           }
+   
+           /* --- TELA 6: ÁREA DO VENDEDOR (CADASTRAR ANÚNCIO) --- */
+           function renderVendedorView(container) {
+               container.innerHTML = `
+                   <div>
+                       <div>
+                           <div>
+                               <div>
+                                   <i></i>
+                               </div>
+                               <div>
+                                   <h2>Criar Novo Anúncio</h2>
+                                   <p>Anuncie seus videogames e consoles para milhares de colecionadores</p>
+                               </div>
+                           </div>
+   
+                           <form onsubmit="handleCreateAnnouncement(event)">
+                               <div>
+                                   <label>Título do Anúncio / Produto *</label>
+                                   <input type="text" id="announcementTitle" required placeholder="Ex: Game Boy Advance SP Tribal Original">
+                               </div>
+   
+                               <div>
+                                   <div>
+                                       <label>Preço de Venda (R$) *</label>
+                                       <input type="number" step="0.01" id="announcementPrice" required placeholder="350.00">
+                                   </div>
+                                   <div>
+                                       <label>Categoria *</label>
+                                       <select id="announcementCategory" required>
+                                           ${appState.categories.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')}
+                                       </select>
+                                   </div>
+                               </div>
+   
+                               <div>
+                                   <div>
+                                       <label>Estado de Conservação *</label>
+                                       <select id="announcementCondition" required>
+                                           <option value="Novo - Lacrado">Novo - Lacrado</option>
+                                           <option value="Usado - Como Novo">Usado - Como Novo</option>
+                                           <option value="Usado - Bom Estado">Usado - Bom Estado</option>
+                                           <option value="Com Detalhes / Sucata">Com Detalhes / Para Peças</option>
+                                       </select>
+                                   </div>
+                                   <div>
+                                       <label>URL da Imagem do Produto *</label>
+                                       <input type="url" id="announcementImage" required placeholder="https://..." value="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80">
+                                   </div>
+                               </div>
+   
+                               <div>
+                                   <label>Descrição Detalhada *</label>
+                                   <textarea id="announcementDescription" rows="4" required placeholder="Descreva os detalhes do console/jogo, o que acompanha, funcionamento..."></textarea>
+                               </div>
+   
+                               <button type="submit">
+                                   Publicar Anúncio no GamesRun
+                               </button>
+                           </form>
+                       </div>
+                   </div>
+               `;
+           }
+   
+           /* --- TELA 7: MEUS PEDIDOS / HISTÓRICO --- */
+           function renderPedidosView(container) {
+               container.innerHTML = `
+                   <div>
+                       <h2>
+                           <i></i> Meus Pedidos Realizados
+                       </h2>
+   
+                       ${appState.orders.length === 0 ? `
+                           <div>
+                               <i></i>
+                               <h3>Você ainda não fez nenhum pedido</h3>
+                               <p>Seus pedidos e status de envio aparecerão aqui.</p>
+                               <button onclick="navigateTo('home')">Explorar Catálogo</button>
+                           </div>
+                       ` : `
+                           <div>
+                               ${appState.orders.map(order => `
+                                   <div>
+                                       <div>
+                                           <div>
+                                               <span>Pedido #${order.id}</span>
+                                               <span>${order.data}</span>
+                                           </div>
+                                           <div>
+                                               <span>
+                                                   ${order.status || 'Pedido registrado'}
+                                               </span>
+                                               <span>R$ ${parseFloat(order.total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                           </div>
+                                       </div>
+                                       <div>
+                                          
+                                           <h4>Itens Comprados:</h4>
+                                           <ul>
+                                               ${order.itens.map(i => `
+                                                   <li>
+                                                       <span>${i.quantidade}x ${i.nome}</span>
+                                                       <span>R$ ${parseFloat(i.preco).toFixed(2)}</span>
+                                                   </li>
+                                               `).join('')}
+                                           </ul>
+                                       </div>
+                                   </div>
+                               `).join('')}
+                           </div>
+                       `}
+                   </div>
+               `;
+           }
+   
+           /* ==========================================================================
+              7. FUNÇÕES DE NEGÓCIO, CARRINHO E INTERAÇÕES COM BACKEND
+              ========================================================================== */
+   
+           // Adicionar Produto ao Carrinho
+           async function addToCart(productId) {
+               const prod = appState.products.find(p => p.id === productId);
+               if (!prod) return;
+   
+               if (appState.currentUser) {
+                   try {
+                       const result = await fetchAPI(`/api/carrinhos/usuario/${appState.currentUser.id}/itens`, {
+                           method: 'POST',
+                           body: JSON.stringify({ anuncioId: prod.id, quantidade: 1 })
+                       });
+                       if (!result && appState.isBackendConnected) return;
+                   } catch (error) {
+                       showToast(error.message, 'error');
+                       return;
+                   }
+               }
+   
+               const existingIndex = appState.cart.findIndex(item => item.id === productId);
+               if (existingIndex > -1) {
+                   appState.cart[existingIndex].quantidade += 1;
+               } else {
+                   appState.cart.push({
+                       id: prod.id,
+                       nome: prod.nome,
+                       preco: prod.preco,
+                       imagemUrl: prod.imagemUrl,
+                       quantidade: 1
+                   });
+               }
+   
+               saveCart();
+               updateCartBadge();
+               if (appState.currentView === 'carrinho') renderCartView(document.getElementById('app'));
+               showToast(`"${prod.nome}" foi adicionado ao carrinho!`, 'success');
+           }
+   
+           async function updateCartQuantity(index, delta) {
+               if (appState.cart[index]) {
+                   const item = appState.cart[index];
+                   const quantity = item.quantidade + delta;
+                   if (appState.currentUser) {
+                       try {
+                           const endpoint = `/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`;
+                           const result = quantity <= 0
+                               ? await fetchAPI(endpoint, { method: 'DELETE' })
+                               : await fetchAPI(`${endpoint}?quantidade=${quantity}`, { method: 'PUT' });
+                           if (!result && appState.isBackendConnected) return;
+                       } catch (error) {
+                           showToast(error.message, 'error');
+                           return;
+                       }
+                   }
+                   if (quantity <= 0) {
+                       appState.cart.splice(index, 1);
+                   } else {
+                       item.quantidade = quantity;
+                   }
+                   saveCart();
+                   updateCartBadge();
+                   renderCartView(document.getElementById('app'));
+               }
+           }
+   
+           async function removeFromCart(index) {
+               if (appState.cart[index]) {
+                   const item = appState.cart[index];
+                   if (appState.currentUser) {
+                       try {
+                           const result = await fetchAPI(`/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`, { method: 'DELETE' });
+                           if (!result && appState.isBackendConnected) return;
+                       } catch (error) {
+                           showToast(error.message, 'error');
+                           return;
+                       }
+                   }
+                   appState.cart.splice(index, 1);
+                   saveCart();
+                   updateCartBadge();
+                   renderCartView(document.getElementById('app'));
+                   showToast('Item removido do carrinho.', 'info');
+               }
+           }
+   
+           function saveCart() {
+               localStorage.setItem('gamesrun_cart', JSON.stringify(appState.cart));
+           }
+   
+           function updateCartBadge() {
+               const badge = document.getElementById('cartCountBadge');
+               const totalCount = appState.cart.reduce((acc, item) => acc + item.quantidade, 0);
+               if (badge) badge.innerText = totalCount;
+           }
+   
+           /* --- FILTROS E BUSCA DO CATÁLOGO --- */
+           async function handleSearch(e) {
+               e.preventDefault();
+               const query = (e.currentTarget.querySelector('input')?.value || '').trim();
+               if (!query) return;
+   
+               showToast(`Buscando por "${query}"...`, 'info');
+               try {
+                   const searchResults = await fetchAPI(`/api/anuncios/buscar?produto=${encodeURIComponent(query)}`);
+                   const results = Array.isArray(searchResults)
+                       ? searchResults.map(normalizeAnnouncement)
+                       : appState.products.filter(product => (product.nome || '').toLowerCase().includes(query.toLowerCase()));
+                   renderFilteredProducts(results, `Resultados para: "${query}"`);
+               } catch (error) {
+                   showToast(error.message, 'error');
+               }
+           }
+   
+           function filterByCategory(categoryName) {
+               const filtered = appState.products.filter(p => p.categoria?.nome?.toLowerCase() === categoryName.toLowerCase());
+               renderFilteredProducts(filtered, `Categoria: ${categoryName}`);
+           }
+   
+           function resetFilters() {
+               if (appState.currentView !== 'home') {
+                   navigateTo('home');
+               } else {
+                   renderHomeView(document.getElementById('app'));
+               }
+           }
+   
+           function renderFilteredProducts(list, titleText) {
+               if (appState.currentView !== 'home') navigateTo('home');
+               
+               setTimeout(() => {
+                   const grid = document.getElementById('productGrid');
+                   const title = document.getElementById('catalogTitle');
+                   if (grid) grid.innerHTML = renderProductCards(list);
+                   if (title) title.innerText = titleText;
+               }, 50);
+           }
+   
+           async function refreshAccountData() {
+               const userId = appState.currentUser.id;
+               const [remoteCart, remoteOrders] = await Promise.all([
+                   fetchAPI(`/api/carrinhos/usuario/${userId}`),
+                   fetchAPI(`/api/pedidos/comprador/${userId}`)
+               ]);
+   
+               if (Array.isArray(remoteCart) && remoteCart.length) {
+                   appState.cart = remoteCart.map(entry => {
+                       const product = appState.products.find(item => Number(item.id) === Number(entry.anuncioId));
+                       return product ? { ...product, quantidade: entry.quantidade } : null;
+                   }).filter(Boolean);
+                   saveCart();
+                   updateCartBadge();
+               } else if (Array.isArray(remoteCart) && appState.cart.length) {
+                   await Promise.all(appState.cart.map(item => fetchAPI(
+                       `/api/carrinhos/usuario/${userId}/itens`,
+                       { method: 'POST', body: JSON.stringify({ anuncioId: item.id, quantidade: item.quantidade }) }
+                   )));
+               }
+               if (Array.isArray(remoteOrders)) appState.orders = remoteOrders.map(normalizeOrder);
+           }
+   
+           function normalizeOrder(order) {
+               let items = [];
+               try {
+                   items = JSON.parse(order.itensResumo || '[]');
+               } catch (error) {
+                   console.warn('[GamesRun] Resumo de itens de pedido inválido:', error);
+               }
+               return {
+                   ...order,
+                   data: order.dataCriacao ? new Date(order.dataCriacao).toLocaleDateString('pt-BR') : 'Data não informada',
+                   total: order.valorTotal,
+                   itens: items
+               };
+           }
+   
+           /* --- ENGINE DO CHAT ANTIGOLPE (ANALISADOR EM TEMPO REAL) --- */
+           function handleSendChatMessage(e) {
+               e.preventDefault();
+               const input = document.getElementById('chatInputText');
+               const text = input.value.trim();
+               if (!text) return;
+   
+               const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+               
+               // Adiciona mensagem do comprador
+               appState.chatMessages.push({ sender: 'comprador', text: text, time: timeStr });
+               input.value = '';
+   
+               // ANALISADOR IA ANTIGOLPE: Detecta palavras suspeitas
+               const suspicousKeywords = ['pix por fora', 'whatsapp', 'zap', 'transferencia direta', 'desconto por fora', 'chama no zap', 'deposito'];
+               const containsSuspectTerm = suspicousKeywords.some(keyword => text.toLowerCase().includes(keyword));
+   
+               if (containsSuspectTerm) {
+                   setTimeout(() => {
+                       appState.chatMessages.push({
+                           sender: 'alerta',
+                           text: '⚠️ O sistema identificou termos de transação fora da plataforma (ex: PIX por fora / WhatsApp). ATENÇÃO: Pagamentos realizados fora do GamesRun NÃO possuem garantia e configuram alto risco de golpe!',
+                           time: timeStr
+                       });
+                       renderChatView(document.getElementById('app'));
+                   }, 400);
+               } else {
+                   // Resposta simulada do vendedor
+                   setTimeout(() => {
+                       appState.chatMessages.push({
+                           sender: 'vendedor',
+                           text: 'Perfeito! Pode concluir a compra diretamente pela plataforma que faço o envio hoje mesmo com o rastreio.',
+                           time: timeStr
+                       });
+                       renderChatView(document.getElementById('app'));
+                   }, 1000);
+               }
+   
+               renderChatView(document.getElementById('app'));
+           }
+   
+           /* --- CADASTRAR NOVO ANÚNCIO (POST /anuncios) --- */
+           async function handleCreateAnnouncement(e) {
+               e.preventDefault();
+   
+               if (!appState.currentUser) {
+                   showToast('Entre na sua conta para publicar um anúncio.', 'error');
+                   toggleUserModal();
+                   return;
+               }
+   
+               const title = document.getElementById('announcementTitle').value;
+               const price = parseFloat(document.getElementById('announcementPrice').value);
+               const categoryId = parseInt(document.getElementById('announcementCategory').value);
+               const condition = document.getElementById('announcementCondition').value;
+               const imageUrl = document.getElementById('announcementImage').value;
+               const description = document.getElementById('announcementDescription').value;
+   
+               const announcement = {
+                   produto: title,
+                   preco: price,
+                   descricao: description,
+                   categoriaId: categoryId,
+                   estadoConservacao: condition,
+                   imagemUrl: imageUrl,
+                   vendedorId: appState.currentUser.id
+               };
+   
+               try {
+                   const savedAnnouncement = await fetchAPI('/api/anuncios/cadastrar', {
+                       method: 'POST',
+                       body: JSON.stringify(announcement)
+                   });
+                   if (!savedAnnouncement) throw new Error('Backend indisponível. O anúncio não foi salvo.');
+                   appState.products.unshift(normalizeAnnouncement(savedAnnouncement));
+                   showToast('Anúncio cadastrado com sucesso!', 'success');
+                   navigateTo('home');
+               } catch (error) {
+                   showToast(error.message, 'error');
+               }
+           }
+   
+           /* --- EXECUTAR CHECKOUT (POST /pedidos) --- */
+           async function executeCheckout() {
+               if (appState.cart.length === 0) return;
+   
+               if (!appState.currentUser) {
+                   showToast('Entre na sua conta para concluir o pedido.', 'error');
+                   toggleUserModal();
+                   return;
+               }
+   
+               const total = appState.cart.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + 25.00;
+               const order = {
+                   compradorId: appState.currentUser.id,
+                   status: 'AGUARDANDO_PAGAMENTO',
+                   dataCriacao: new Date().toISOString(),
+                   valorTotal: total,
+   
+                   formaPagamento: appState.paymentMethod,
+                   enderecoEntrega: document.getElementById('checkoutAddress').value.trim(),
+                   itensResumo: JSON.stringify(appState.cart.map(item => ({
+                       nome: item.nome,
+                       preco: item.preco,
+                       quantidade: item.quantidade
+                       })))};
+                       async function executeCheckout() {
+                           if (appState.cart.length === 0) return;
+                       
+                           try {
+                               const savedOrder = await fetchAPI('/api/pedidos/cadastrar', {
+                                   method: 'POST',
+                                   body: JSON.stringify(order)
+                               });
+                               if (!savedOrder) throw new Error('Backend indisponível. O pedido não foi registrado.');
+                               const cartItems = [...appState.cart];
+                               await Promise.all(cartItems.map(item => fetchAPI(
+                                   `/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`,
+                                   { method: 'DELETE' }
+                               )));
+                               appState.orders.unshift(normalizeOrder(savedOrder));
+                               appState.cart = [];
+                               saveCart();
+                               updateCartBadge();
+                               showToast('Pedido registrado com sucesso!', 'success');
+                               navigateTo('pedidos');
+                           } catch (error) {
+                               showToast(error.message, 'error');
+                           }
+                       }
+           async function confimarpix() {
+               if (appState.cart.length === 0) return;
+   
+               if (!appState.currentUser) {
+                   showToast('Entre na sua conta para concluir o pedido.', 'error');
+                   toggleUserModal();
+                   return;
+               }
+   
+               const total = appState.cart.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + 25.00;
+               const order = {
+                   compradorId: appState.currentUser.id,
+                   status: 'PAGAMENTO_CONCLUIDO',
+                   dataCriacao: new Date().toISOString(),
+                   valorTotal: total,
+                   formaPagamento: appState.paymentMethod,
+                   enderecoEntrega: document.getElementById('checkoutAddress').value.trim(),
+                   itensResumo: JSON.stringify(appState.cart.map(item => ({
+                       nome: item.nome,
+                       preco: item.preco,
+                       quantidade: item.quantidade
+                       })))};
+           
+               try {
+                   const savedOrder = await fetchAPI('/api/pedidos/cadastrar', {
+                       method: 'POST',
+                       body: JSON.stringify(order)
+                   });
+                   if (!savedOrder) throw new Error('Backend indisponível. O pedido não foi registrado.');
+                   const cartItems = [...appState.cart];
+                   await Promise.all(cartItems.map(item => fetchAPI(
+                       `/api/carrinhos/usuario/${appState.currentUser.id}/itens/${item.id}`,
+                       { method: 'DELETE' }
+                   )));
+                   appState.orders.unshift(normalizeOrder(savedOrder));
+                   appState.cart = [];
+                   saveCart();
+                   updateCartBadge();
+                   showToast('Pedido registrado com sucesso!', 'success');
+                   navigateTo('pedidos');
+               } catch (error) {
+                   showToast(error.message, 'error');
+               }
+           }
+           
+   
+   
+           /* --- AUTENTICAÇÃO E MODAL --- */
+           function toggleUserModal() {
+               const modal = document.getElementById('authModal');
+               if (modal) modal.classList.toggle('hidden');
+           }
+   
+           function switchAuthMode(mode) {
+               const loginForm = document.getElementById('loginForm');
+               const signupForm = document.getElementById('signupForm');
+               const title = document.getElementById('authModalTitle');
+   
+               if (mode === 'signup') {
+                   loginForm.classList.add('hidden');
+                   signupForm.classList.remove('hidden');
+                   title.innerText = 'Criar Conta no GamesRun';
+               } else {
+                   signupForm.classList.add('hidden');
+                   loginForm.classList.remove('hidden');
+                   title.innerText = 'Acessar GamesRun';
+               }
+           }
+   
+           async function handleLogin(e) {
+               e.preventDefault();
+               const email = document.getElementById('loginEmail').value;
+               const senha = document.getElementById('loginPassword').value;
+   
+               try {
+                   const userApi = await fetchAPI('/api/usuarios/login', {
+                       method: 'POST',
+                       body: JSON.stringify({ nick: email, senha })
+                   });
+                   if (!userApi) throw new Error('Backend indisponível. Não foi possível entrar.');
+                   appState.currentUser = userApi;
+                   localStorage.setItem('gamesrun_user', JSON.stringify(userApi));
+                   await refreshAccountData();
+                   updateUserDisplay();
+                   toggleUserModal();
+                   showToast(`Bem-vindo de volta, ${appState.currentUser.nome}!`, 'success');
+               } catch (error) {
+                   showToast(error.message, 'error');
+               }
+           }
+   
+           async function handleSignup(e) {
+               e.preventDefault();
+               const nome = document.getElementById('signupNome').value;
+               const email = document.getElementById('signupEmail').value;
+               const cpf = document.getElementById('signupCpf').value;
+               const senha = document.getElementById('signupPassword').value;
+   
+               try {
+                   const userApi = await fetchAPI('/api/usuarios/cadastrar', {
+                       method: 'POST',
+                       body: JSON.stringify({ nome, nick: email, cpf: cpf.replace(/\D/g, ''), senha })
+                   });
+                   if (!userApi) throw new Error('Backend indisponível. A conta não foi criada.');
+                   appState.currentUser = userApi;
+                   localStorage.setItem('gamesrun_user', JSON.stringify(userApi));
+                   await refreshAccountData();
+                   updateUserDisplay();
+                   toggleUserModal();
+                   showToast('Conta criada com sucesso!', 'success');
+               } catch (error) {
+                   showToast(error.message, 'error');
+               }
+           }
+   
+           function logoutUser() {
+               if (!appState.currentUser) return;
+   
+               appState.currentUser = null;
+               localStorage.removeItem('gamesrun_user');
+               updateUserDisplay();
+               showToast('Você saiu da sua conta.', 'success');
+           }
+   
+           function handleUserAction() {
+               if (appState.currentUser) {
+                   navigateTo('pedidos');
+               } else {
+                   toggleUserModal();
+               }
+           }
+   
+           function updateUserDisplay() {
+       const display = document.getElementById('userNameDisplay');
+       const logoutButton = document.getElementById('logoutButton');
+   
+       if (appState.currentUser) {
+           if (display) display.innerText = appState.currentUser.nome || 'Minha Conta';
+           if (logoutButton) logoutButton.style.display = 'inline-flex'; // Exibe o botão ao fazer login
+       } else {
+           if (display) display.innerText = 'Entrar';
+           if (logoutButton) logoutButton.style.display = 'none'; // Esconde o botão ao sair/deslogar
+       }
+   }
+               
+   
+           /* --- UTILITÁRIO: TOAST NOTIFICATIONS --- */
+           function showToast(message, type = 'info') {
+               const container = document.getElementById('toastContainer');
+               if (!container) return;
+   
+               const toast = document.createElement('div');
+               const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-brand-purple';
+   
+               toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-2xl text-sm font-bold flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-5 opacity-0 pointer-events-auto`;
+               toast.innerHTML = `
+                   <span>${message}</span>
+                   <button onclick="this.parentElement.remove()"><i></i></button>
+               `;
+   
+               container.appendChild(toast);
+   
+               setTimeout(() => {
+                   toast.classList.remove('translate-y-5', 'opacity-0');
+               }, 10);
+   
+               setTimeout(() => {
+                   toast.classList.add('opacity-0', 'translate-y-5');
+                   setTimeout(() => toast.remove(), 300);
+               }, 3500);
+           }
+   
+           /* --- INICIALIZAR APLICAÇÃO AO CARREGAR A PÁGINA --- */
+           window.onload = function() {
+               initApp();
+           };
+        }
