@@ -1,6 +1,9 @@
 package eCommerce.GamesRun.service;
 
 import java.util.List;
+import eCommerce.GamesRun.repository.CarrinhoRepository;
+import eCommerce.GamesRun.repository.FavoritoRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,13 @@ import eCommerce.GamesRun.repository.AnuncioRepository;
 public class AnuncioService {
 
 	private final AnuncioRepository anuncioRepository;
+    private final CarrinhoRepository carrinhos;
+    private final FavoritoRepository favoritos;
 
-	public AnuncioService(AnuncioRepository anuncioRepository) {
+	public AnuncioService(AnuncioRepository anuncioRepository, CarrinhoRepository carrinhos, FavoritoRepository favoritos) {
 		this.anuncioRepository = anuncioRepository;
+        this.carrinhos = carrinhos;
+        this.favoritos = favoritos;
 	}
 
 	public List<Anuncio> buscarTodos() {
@@ -36,22 +43,35 @@ public class AnuncioService {
 		return anuncioRepository.save(anuncio);
 	}
 
-	public Anuncio atualizar(Long id, Anuncio anuncio) {
+	public Anuncio atualizar(Long id, Anuncio anuncio, Long usuarioId) {
 		validar(anuncio);
 		Anuncio existente = buscarPorId(id);
+        exigirVendedor(existente, usuarioId);
 		existente.setProduto(anuncio.getProduto());
 		existente.setDescricao(anuncio.getDescricao());
 		existente.setPreco(anuncio.getPreco());
 		existente.setEstadoConservacao(anuncio.getEstadoConservacao());
 		existente.setImagemUrl(anuncio.getImagemUrl());
 		existente.setCategoriaId(anuncio.getCategoriaId());
-		existente.setVendedorId(anuncio.getVendedorId());
+		// O proprietário original nunca é transferido pelo corpo da requisição.
 		return anuncioRepository.save(existente);
 	}
 
-	public void excluir(Long id) {
-		anuncioRepository.delete(buscarPorId(id));
-	}
+	@Transactional
+    public void excluir(Long id, Long usuarioId) {
+        Anuncio anuncio = buscarPorId(id);
+        exigirVendedor(anuncio, usuarioId);
+        carrinhos.deleteByAnuncioId(id);
+        carrinhos.flush();
+        favoritos.deleteByAnuncioId(id);
+        favoritos.flush();
+        anuncioRepository.delete(anuncio);
+    }
+
+    private void exigirVendedor(Anuncio anuncio, Long usuarioId) {
+        if (!usuarioId.equals(anuncio.getVendedorId()))
+            throw new ApiException(HttpStatus.FORBIDDEN, "Somente o vendedor que criou este anúncio pode alterá-lo ou excluí-lo.");
+    }
 
 	private void validar(Anuncio anuncio) {
 		if (anuncio == null) {

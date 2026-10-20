@@ -123,6 +123,7 @@ class GamesRunApplicationTests {
 				.andExpect(jsonPath("$.senha").doesNotExist())
 				.andReturn();
 		long usuarioId = objectMapper.readTree(resultadoUsuario.getResponse().getContentAsString()).get("id").asLong();
+        var sessao = (org.springframework.mock.web.MockHttpSession) resultadoUsuario.getRequest().getSession(false);
 		var categoria = new eCommerce.GamesRun.domain.Categoria();
 		categoria.setNome("Consoles");
 		categoria.setDescricao("Jogos e consoles");
@@ -136,7 +137,7 @@ class GamesRunApplicationTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(usuarioId));
 
-		MvcResult resultadoAnuncio = mockMvc.perform(post("/api/anuncios/cadastrar")
+		MvcResult resultadoAnuncio = mockMvc.perform(post("/api/anuncios/cadastrar").session(sessao)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content("""
 							{"produto":"Controle retrô","descricao":"Em ótimo estado","preco":150.0,"categoriaId":%d,"vendedorId":%d,"imagemUrl":"https://example.com/controle.jpg","estadoConservacao":"Usado"}
@@ -163,7 +164,7 @@ class GamesRunApplicationTests {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.quantidade").value(2));
 
-		mockMvc.perform(post("/api/pedidos/cadastrar")
+		mockMvc.perform(post("/api/pedidos/cadastrar").session(sessao)
 					.contentType(MediaType.APPLICATION_JSON)
 					.content("""
 							{"compradorId":%d,"status":"AGUARDANDO_PAGAMENTO","dataCriacao":"2026-09-28T10:00:00Z","valorTotal":325.0,"formaPagamento":"pix","enderecoEntrega":"Rua Teste, 1","itensResumo":"[{\\"nome\\":\\"Controle retrô\\",\\"preco\\":150.0,\\"quantidade\\":2}]"}

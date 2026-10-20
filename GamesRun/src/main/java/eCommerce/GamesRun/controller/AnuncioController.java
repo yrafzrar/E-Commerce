@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
+import eCommerce.GamesRun.security.SessaoUsuario;
 
 import eCommerce.GamesRun.domain.Anuncio;
 import eCommerce.GamesRun.service.AnuncioService;
@@ -42,18 +44,19 @@ public class AnuncioController {
     }
 
     @PostMapping("/cadastrar")
-    public ResponseEntity<Anuncio> criar(@RequestBody(required = false) Anuncio anuncio) {
+    public ResponseEntity<Anuncio> criar(@RequestBody(required = false) Anuncio anuncio, HttpServletRequest request) {
+        if (anuncio != null) anuncio.setVendedorId(SessaoUsuario.exigir(request));
         return ResponseEntity.ok(anuncioService.salvar(anuncio));
     }
 
     @PutMapping("/atualizar/{id}")
-    public ResponseEntity<Anuncio> atualizar(@PathVariable Long id, @RequestBody(required = false) Anuncio anuncio) {
-        return ResponseEntity.ok(anuncioService.atualizar(id, anuncio));
+    public ResponseEntity<Anuncio> atualizar(@PathVariable Long id, @RequestBody(required = false) Anuncio anuncio, HttpServletRequest request) {
+        return ResponseEntity.ok(anuncioService.atualizar(id, anuncio, SessaoUsuario.exigir(request)));
     }
 
     @DeleteMapping("/excluir/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        anuncioService.excluir(id);
+    public ResponseEntity<Void> excluir(@PathVariable Long id, HttpServletRequest request) {
+        anuncioService.excluir(id, SessaoUsuario.exigir(request));
         return ResponseEntity.ok().build();
     }
 }

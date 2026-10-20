@@ -39,7 +39,7 @@ public class PedidoService {
 	public Pedido atualizar(Long id, Pedido pedido) {
 		validar(pedido);
 		Pedido existente = buscarPorId(id);
-		existente.setCompradorId(pedido.getCompradorId());
+		// Preserva o proprietário do pedido.
 		existente.setStatus(pedido.getStatus());
 		existente.setDataCriacao(pedido.getDataCriacao());
 		existente.setValorTotal(pedido.getValorTotal());

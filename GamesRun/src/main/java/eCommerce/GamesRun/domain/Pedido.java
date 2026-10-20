@@ -25,7 +25,15 @@ public class Pedido {
     @Column(length = 4000)
     private String itensResumo;
     private double valorTotal;
+    private String codigoSimulado;
+    private String pagamentoSimuladoEm;
 
+    public String getCodigoSimulado() { return codigoSimulado; }
+    public void setCodigoSimulado(String codigoSimulado) { this.codigoSimulado = codigoSimulado; }
+    public String getPagamentoSimuladoEm() { return pagamentoSimuladoEm; }
+    public void setPagamentoSimuladoEm(String pagamentoSimuladoEm) { this.pagamentoSimuladoEm = pagamentoSimuladoEm; }
+
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
     public Long getId() {
         return id;
     }

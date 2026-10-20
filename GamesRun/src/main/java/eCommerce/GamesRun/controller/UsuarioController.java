@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
+import eCommerce.GamesRun.security.SessaoUsuario;
 
 import eCommerce.GamesRun.domain.Usuario;
 import eCommerce.GamesRun.service.UsuarioService;
@@ -36,22 +38,40 @@ public class UsuarioController {
 	}
 
 	@PostMapping("/cadastrar")
-	public ResponseEntity<Usuario> criar(@RequestBody(required = false) Usuario usuario) {
-		return ResponseEntity.ok(usuarioService.salvar(usuario));
+	public ResponseEntity<Usuario> criar(@RequestBody(required = false) Usuario usuario, HttpServletRequest request) {
+        Usuario salvo = usuarioService.salvar(usuario);
+        SessaoUsuario.entrar(request, salvo.getId());
+        return ResponseEntity.ok(salvo);
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<Usuario> login(@RequestBody LoginRequest request) {
-		return ResponseEntity.ok(usuarioService.autenticar(request.nick(), request.senha()));
+	public ResponseEntity<Usuario> login(@RequestBody LoginRequest dados, HttpServletRequest request) {
+        Usuario usuario = usuarioService.autenticar(dados.nick(), dados.senha());
+        SessaoUsuario.entrar(request, usuario.getId());
+        return ResponseEntity.ok(usuario);
 	}
 
-	@PutMapping("/atualizar/{id}")
-	public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody(required = false) Usuario usuario) {
+	@GetMapping("/sessao")
+    public ResponseEntity<Usuario> sessao(HttpServletRequest request) {
+        return ResponseEntity.ok(usuarioService.buscarPorId(SessaoUsuario.exigir(request)));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        var session = request.getSession(false);
+        if (session != null) session.invalidate();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/atualizar/{id}")
+	public ResponseEntity<Usuario> atualizar(@PathVariable Long id, @RequestBody(required = false) Usuario usuario, HttpServletRequest request) {
+        SessaoUsuario.exigirProprio(request, id);
 		return ResponseEntity.ok(usuarioService.atualizar(id, usuario));
 	}
 
 	@DeleteMapping("/excluir/{id}")
-	public ResponseEntity<Void> excluir(@PathVariable Long id) {
+	public ResponseEntity<Void> excluir(@PathVariable Long id, HttpServletRequest request) {
+        SessaoUsuario.exigirProprio(request, id);
 		usuarioService.excluir(id);
 		return ResponseEntity.ok().build();
 	}

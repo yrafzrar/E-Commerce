@@ -1,203 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamesRun - Marketplace Gamer & Retro</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101212">
+  <meta name="description" content="GamesRun. Um novo destino para jogos, consoles e a sua próxima coleção.">
+  <title>GamesRun — Studio</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script>
+  <script src="script.js" defer></script>
+
+
 </head>
 <body>
-    <header >
-        <div>
-            <div>
-                <!-- Logo -->
-                <div onclick="navigateTo('home')">
-                    <div>
-                        <i></i>
-                    </div>
-                    <div>
-                        <span>GAMES<span>RUN</span></span>
-                        <span>Retro & Next-Gen</span>
-                    </div>
-                </div>
-
-                <!-- Search Bar -->
-                <div>
-                    <form onsubmit="handleSearch(event)">
-                        <input type="text" id="searchInput" placeholder="Busque jogos, consoles (ex: Nintendo 3DS, N64, PS5)...">
-                        <button type="submit">
-                            <i></i> Submit
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Navigation Links & User Actions -->
-                <div>
-                    <!-- API Status Badge -->
-                   
-
-                    <button onclick="navigateTo('home')">
-                        <i></i> Catálogo
-                    </button>
-
-                    <button onclick="navigateTo('vendedor')">
-                        <i></i> Anunciar
-                    </button>
-
-                    <button onclick="navigateTo('chat')">
-                        <i></i> Chat AntiGolpe
-                    </button>
-
-                    <!-- Cart Icon -->
-                    <button onclick="navigateTo('carrinho')" >
-                        <i></i>
-                        <span id="cartCountBadge">0</span>
-                    </button>
-
-                                <!-- ALTERADO AQUI: Adicionado inline-flex no container para ficar tudo alinhado na mesma linha -->
-                <div id="userMenuContainer">
-                    <button id="userActionButton" onclick="handleUserAction()">
-                        <i></i>
-                        <span id="userNameDisplay">Entrar</span>
-                    </button>
-
-                    <!-- ALTERADO AQUI: Botão de Sair com style="display: none;" para começar escondido e manter o estilo nativo dos outros botões -->
-                    <button id="logoutButton" onclick="logoutUser()" title="Sair da conta">
-                        <i></i> Sair
-                    </button>
-                </div>
-      
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mobile Search Bar (visible on small screens) -->
-            <div>
-                <form onsubmit="handleSearch(event)">
-                    <input type="text" id="searchInputMobile" placeholder="Buscar consoles, fitas, jogos..." 
-                        >
-                    <button type="submit">
-                        <i>Submit</i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </header>
-
-    <div id="toastContainer"></div>
-
-    <!-- MAIN SPA CONTENT CONTAINER -->
-    <main id="app">
-        <!-- Views will be dynamically injected here via JS -->
-    </main>
-    <div id="authModal" >
-        <div>
-            <button onclick="toggleUserModal()">
-                <i></i> Fechar
-            </button>
-
-            <!-- Modal Header -->
-            <div>
-                <div>
-                    <i></i>
-                </div>
-                <h3 id="authModalTitle">Acessar GamesRun</h3>
-                <p>Conecte-se para comprar ou vender itens gamers com segurança</p>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div>
-                    <label>E-mail Gamer</label>
-                        <input type="email" id="loginEmail" required placeholder="seu@email.com"
-                        >
-                </div>
-                <div>
-                    <label >Senha</label>
-                        <input type="password" id="loginPassword" required placeholder="••••••••"
-                        >
-                </div>
-                <button type="submit">
-                    Entrar na Conta
-                </button>
-                <p>
-                    Não tem uma conta? <button type="button" onclick="switchAuthMode('signup')">Cadastre-se</button>
-                </p>
-            </form>
-
-            <!-- Signup Form (Hidden by default) -->
-            <form id="signupForm" onsubmit="handleSignup(event)">
-                <div>
-                    <label >Nome Completo</label>
-                    <input type="text" id="signupNome" required placeholder="Seu Nome Gamer"
-                       >
-                </div>
-                <div>
-                    <label >E-mail</label>
-                    <input type="email" id="signupEmail" required placeholder="seu@email.com">
-                </div>
-                <div>
-                    <label>CPF</label>
-                    <input type="text" id="signupCpf" required placeholder="000.000.000-00">
-                </div>
-                <div>
-                    <label>Senha</label>
-                    <input type="password" id="signupPassword" required placeholder="••••••••">
-                </div>
-                <button type="submit" id="logado" >
-                    Criar Conta
-                </button>
-                <p >
-                    Já possui conta? <button type="button" onclick="switchAuthMode('login')">Fazer Login</button>
-                </p>
-            </form>
-        </div>
+  <a class="skip-link" href="#app">Pular para o conteúdo</a>
+  <div class="announcement"><span>ENCONTRE O SEU PRÓXIMO PLAY</span> De player para player. <span class="announcement-star">✦</span></div>
+  <header class="header">
+    <div class="header-main wrap">
+      <a href="#home" class="brand" aria-label="GamesRun, início"><span class="brand-mark" aria-hidden="true">↗</span><span>GAMES<span class="accent">RUN</span><small>O SEU PRÓXIMO LEVEL</small></span></a>
+      <form id="searchForm" class="search" role="search"><label class="sr-only" for="searchInput">Buscar jogos e consoles</label><span data-icon="search"></span><input id="searchInput" name="q" type="search" placeholder="Qual vai ser o próximo play?" autocomplete="off" maxlength="100"><button type="submit" aria-label="Buscar"><span data-icon="arrow"></span></button></form>
+      <div class="header-actions">
+        <button class="icon-button favorites-button" data-action="favorites" aria-label="Meus favoritos" title="Favoritos"><span data-icon="heart"></span><span id="favoriteCount" class="tiny-count"></span></button>
+        <a href="#carrinho" class="icon-button cart-button" aria-label="Carrinho"><span data-icon="bag"></span><span id="cartCountBadge" class="cart-badge">0</span></a>
+        <span class="header-divider"></span>
+        <button id="userActionButton" data-action="account" class="account-button"><span data-icon="user"></span><span id="userNameDisplay">Entrar <small>ou criar conta</small></span></button>
+        <button id="logoutButton" class="icon-button" data-action="logout" aria-label="Sair da conta" hidden><span data-icon="logout"></span></button>
+      </div>
     </div>
+    <nav class="navigation wrap" aria-label="Navegação principal">
+      <div class="nav-links"><a href="#home" data-nav="home">Explorar</a><button data-action="platform" data-value="Nintendo">Nintendo</button><button data-action="platform" data-value="PlayStation">PlayStation</button><button data-action="platform" data-value="Xbox">Xbox</button><button data-action="platform" data-value="Retro">Retrô & colecionáveis <span class="nav-tag">CLÁSSICOS</span></button></div>
+      <a class="sell-link" href="#vendedor"><span data-icon="plus"></span> Quero vender</a>
+    </nav>
+  </header>
+  <main id="app" class="wrap" tabindex="-1"><div class="initial-loader"><span class="loading-dot"></span> Preparando seu próximo play…</div></main>
+  <footer class="footer"><div class="wrap footer-inner"><a class="brand footer-brand" href="#home"><span class="brand-mark" aria-hidden="true">↗</span><span>GAMES<span class="accent">RUN</span></span></a><p>Alguns jogos passam. A vontade de jogar fica.</p><div><button data-action="info">Como funciona</button><a href="#chat">Dicas de segurança</a><span>© <span id="year"></span> GamesRun</span></div></div></footer>
+  <dialog id="authModal" class="auth-dialog" aria-labelledby="authModalTitle">
+    <button class="icon-button dialog-close" data-action="close-auth" aria-label="Fechar"><span data-icon="close"></span></button>
+    <div class="auth-art"><span class="eyebrow">BEM-VINDO AO SEU PRÓXIMO LEVEL</span><div class="auth-pixel" aria-hidden="true">✦</div><h2>Sua próxima<br>história começa<br><span class="accent">com um play.</span></h2><p>Encontre aquele clássico. Desapegue de um console. Continue o jogo.</p><span class="auth-art-bottom">RETRO SOUL. NEXT-GEN ENERGY. ↗</span></div>
+    <div class="auth-content"><span class="eyebrow accent">PLAYER, APRESENTE-SE</span><h2 id="authModalTitle">Bom ter você de volta.</h2><p id="authSubtitle" class="muted">Entre para continuar sua jornada.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Acesso à conta"><button role="tab" id="loginTab" aria-controls="loginForm" aria-selected="true" data-action="auth-mode" data-value="login">Entrar</button><button role="tab" id="signupTab" aria-controls="signupForm" aria-selected="false" tabindex="-1" data-action="auth-mode" data-value="signup">Criar conta</button></div>
+      <form id="loginForm" role="tabpanel" aria-labelledby="loginTab"><label for="loginEmail">E-mail ou nick</label><input id="loginEmail" name="nick" type="text" required autocomplete="username" placeholder="Seu e-mail ou nick" maxlength="150"><label for="loginPassword">Senha</label><div class="password-field"><input id="loginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Sua senha"><button type="button" data-action="password" data-target="loginPassword" aria-label="Mostrar senha" aria-pressed="false"><span data-icon="eye"></span></button></div><p class="form-error" id="loginError" role="alert"></p><button type="submit" class="btn btn-primary full">Entrar na minha conta <span data-icon="arrow"></span></button><p class="form-foot">Novo por aqui? <button type="button" data-action="auth-mode" data-value="signup">Crie sua conta</button></p></form>
+      <form id="signupForm" role="tabpanel" aria-labelledby="signupTab" hidden><label for="signupNome">Nome completo</label><input id="signupNome" name="nome" required autocomplete="name" minlength="3" maxlength="100" placeholder="Como podemos chamar você?"><label for="signupEmail">E-mail</label><input id="signupEmail" name="email" type="email" required autocomplete="email" maxlength="150" placeholder="player@email.com"><label for="signupCpf">CPF</label><input id="signupCpf" name="cpf" required inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" pattern="[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}"><label for="signupIdade">Idade</label><input id="signupIdade" name="idade" type="number" required min="1" max="120" inputmode="numeric" placeholder="Sua idade"><label for="signupPassword">Senha</label><div class="password-field"><input id="signupPassword" name="senha" type="password" required autocomplete="new-password" minlength="8" maxlength="128" placeholder="Pelo menos 8 caracteres"><button type="button" data-action="password" data-target="signupPassword" aria-label="Mostrar senha" aria-pressed="false"><span data-icon="eye"></span></button></div><p class="form-error" id="signupError" role="alert"></p><button type="submit" class="btn btn-primary full">Criar minha conta <span data-icon="arrow"></span></button></form>
+    </div>
+  </dialog>
+  <dialog id="infoModal" class="info-dialog" aria-labelledby="infoTitle"><button class="icon-button dialog-close" data-action="close-info" aria-label="Fechar"><span data-icon="close"></span></button><span class="eyebrow accent">COMO FUNCIONA</span><h2 id="infoTitle">Um novo play para cada item.</h2><ol class="how-list"><li><b>Explore e encontre</b><p>Busque por console, categoria ou nome. Salve os favoritos para ver depois.</p></li><li><b>Monte seu carrinho</b><p>Entre na sua conta e registre seu pedido. A confirmação do pagamento depende do serviço de pagamentos.</p></li><li><b>Passe o controle</b><p>Crie uma conta para anunciar os jogos e consoles que merecem uma nova história.</p></li></ol><p class="notice">Sem conexão com o servidor, você pode explorar um catálogo de exemplo. Contas, anúncios e pedidos precisam do servidor.</p></dialog>
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+  <noscript><p class="notice wrap">Ative o JavaScript no navegador para usar o GamesRun.</p></noscript>
 
-    <footer >
-        <div>
-            <div >
-                <div>
-                    <div>
-                        <div>
-                            <i></i>
-                        </div>
-                        <span>GAMES<span >RUN</span></span>
-                    </div>
-                    <p >O marketplace especializado no universo dos videogames. Compre, venda e colecione com segurança protegida por IA.</p>
-                </div>
-                <div>
-                    <h4>Navegação</h4>
-                    <ul >
-                        <li><a href="#" onclick="navigateTo('home'); return false;" >Catálogo Completo</a></li>
-                        <li><a href="#" onclick="navigateTo('vendedor'); return false;">Anunciar Console/Jogo</a></li>
-                        <li><a href="#" onclick="navigateTo('chat'); return false;" >Chat de Negociação AntiGolpe</a></li>
-                        <li><a href="#" onclick="filterByCategory('Retro'); return false;">Consoles Retrô</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 >Segurança & Entregas</h4>
-                    <ul >
-                        <li><i></i> Proteção ao Comprador</li>
-                        <li><i ></i> Envio com Rastreamento</li>
-                        <li><i></i> Pontos de Coleta GamesRun</li>
-                        <li><i></i> Monitoramento AntiGolpe Ativo</li>
-                    </ul>
-                </div>
-                
-            </div>
-            <div >
-                <p>&copy; 2026 GamesRun E-Commerce. Todos os direitos reservados.</p>
-                <div>
-                    <a  href="texto.txt">Termos de Uso</a>
-                    <span>Política de Privacidade</span>
-                    <span >Suporte</span>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>

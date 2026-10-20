@@ -23,8 +23,16 @@ public class Usuario {
     private String senha;
     @Column(nullable = false)
     private int idade;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean dadosMockadosCarregados;
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isDadosMockadosCarregados() { return dadosMockadosCarregados; }
+    public void setDadosMockadosCarregados(boolean carregados) { this.dadosMockadosCarregados = carregados; }
 
 
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public Long getId() {
         return id;
     }

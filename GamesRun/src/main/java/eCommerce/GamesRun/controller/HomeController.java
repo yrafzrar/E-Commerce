@@ -12,6 +12,6 @@ public class HomeController {
 
     @GetMapping(value = {"/", "/index.html"}, produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<Resource> index() {
-        return ResponseEntity.ok(new ClassPathResource("index.html"));
+        return ResponseEntity.ok(new ClassPathResource("static/index.html"));
     }
 }

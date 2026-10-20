@@ -31,6 +31,7 @@ public class Anuncio {
     private double preco;
 
 
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
     public Long getId() {
         return id;
     }
