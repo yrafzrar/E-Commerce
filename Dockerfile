@@ -1,16 +1,12 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
-WORKDIR /app/GamesRun
+WORKDIR /app
 
-COPY GamesRun/pom.xml .
-COPY GamesRun/mvnw .
-COPY GamesRun/.mvn .mvn
-COPY GamesRun/src src
-
+COPY GamesRun/ .
 RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-COPY --from=build /app/GamesRun/target/*.jar app.jar
+COPY --from=build /app/target/*.jar ./app.jar
 
 CMD ["sh", "-c", "java -Dserver.port=${PORT:-8081} -jar app.jar"]
